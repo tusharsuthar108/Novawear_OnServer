@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -11,14 +11,20 @@ import ProductGalleryPage from "./pages/ProductGalleryPage";
 import TrackOrderPage from "./pages/TrackOrderPage";
 import OrdersPage from "./pages/OrdersPage";
 
-function App() {
-  return (
-    <CartProvider>
-      <BrowserRouter>
-        {/* Navbar visible on all pages */}
-        <Navbar />
+import AdminDashboard from "./pages/admin/dashboard";
 
-        <Routes>
+
+
+function AppContent() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  return (
+    <>
+      {/* Navbar visible on all pages except admin routes */}
+      {!isAdminRoute && <Navbar />}
+
+      <Routes>
           {/* Home */}
           <Route path="/" element={<Home />} />
 
@@ -41,7 +47,20 @@ function App() {
           
           {/* Orders */}
           <Route path="/orders" element={<OrdersPage />} />
-        </Routes>
+          
+          {/* Admin Dashboard */}
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          
+      </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <CartProvider>
+      <BrowserRouter>
+        <AppContent />
       </BrowserRouter>
     </CartProvider>
   );
