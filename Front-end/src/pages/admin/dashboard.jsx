@@ -3,7 +3,8 @@ import {
   LayoutDashboard, ShoppingBag, Truck, Users, 
   BarChart3, LogOut, ChevronRight, 
   Plus, Search, Package, Bell, Settings,
-  PanelLeftClose, PanelLeftOpen, ChevronDown, Tag
+  PanelLeftClose, PanelLeftOpen, ChevronDown, Tag,
+  Award, FileText, Shirt, DollarSign
 } from 'lucide-react';
 import MasterCategory from '../../components/admin/MasterCategory';
 import Category from '../../components/admin/Category';
@@ -14,6 +15,10 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('Insights');
   const [isOpen, setIsOpen] = useState(true);
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [brandOpen, setBrandOpen] = useState(false);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [productOpen, setProductOpen] = useState(false);
+  const [pricingOpen, setPricingOpen] = useState(false);
 
   const menuItems = [
     { name: 'Insights', icon: <LayoutDashboard size={20} />, color: 'text-blue-500' },
@@ -28,6 +33,29 @@ const Dashboard = () => {
     'Category', 
     'Sub Category',
     'Sub Sub Category'
+  ];
+
+  const brandItems = [
+    'Brand List',
+    'Add Brand'
+  ];
+
+  const orderItems = [
+    'Order List',
+    'Order Details'
+  ];
+
+  const productItems = [
+    'Product List',
+    'Add Product',
+    'Size Chart',
+    'Stock Management'
+  ];
+
+  const pricingItems = [
+    'Price List',
+    'Discount Rules',
+    'Bulk Pricing'
   ];
 
   const renderContent = () => {
@@ -128,7 +156,7 @@ const Dashboard = () => {
           {/* Category Dropdown */}
           <div className="pt-4">
             <div className="px-4 mb-2">
-              {isOpen && <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Categories</p>}
+              {isOpen && <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Management</p>}
             </div>
             <button
               onClick={() => setCategoryOpen(!categoryOpen)}
@@ -172,6 +200,210 @@ const Dashboard = () => {
                   >
                     <span className="text-sm">
                       {category}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Brand Dropdown */}
+          <div className="pt-2">
+            <button
+              onClick={() => setBrandOpen(!brandOpen)}
+              className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group relative text-slate-600 hover:bg-slate-50 hover:text-slate-800 ${
+                !isOpen ? 'justify-center' : 'justify-between'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-rose-500"><Award size={20} /></span>
+                {isOpen && (
+                  <span className="text-sm font-semibold">
+                    Brand
+                  </span>
+                )}
+              </div>
+              
+              {!isOpen && (
+                <div className="absolute left-20 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                  Brand
+                </div>
+              )}
+
+              {isOpen && (
+                <ChevronDown size={16} className={`transition-transform duration-300 ${
+                  brandOpen ? 'rotate-180' : ''
+                }`} />
+              )}
+            </button>
+            
+            {isOpen && brandOpen && (
+              <div className="ml-6 mt-2 space-y-1 border-l-2 border-slate-100 pl-4">
+                {brandItems.map((brand) => (
+                  <button
+                    key={brand}
+                    onClick={() => setActiveTab(brand)}
+                    className={`w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-left ${
+                      activeTab === brand
+                      ? 'bg-indigo-50 text-indigo-600 font-medium'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                    }`}
+                  >
+                    <span className="text-sm">
+                      {brand}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Order Dropdown */}
+          <div className="pt-2">
+            <button
+              onClick={() => setOrderOpen(!orderOpen)}
+              className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group relative text-slate-600 hover:bg-slate-50 hover:text-slate-800 ${
+                !isOpen ? 'justify-center' : 'justify-between'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-green-500"><FileText size={20} /></span>
+                {isOpen && (
+                  <span className="text-sm font-semibold">
+                    Order
+                  </span>
+                )}
+              </div>
+              
+              {!isOpen && (
+                <div className="absolute left-20 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                  Order
+                </div>
+              )}
+
+              {isOpen && (
+                <ChevronDown size={16} className={`transition-transform duration-300 ${
+                  orderOpen ? 'rotate-180' : ''
+                }`} />
+              )}
+            </button>
+            
+            {isOpen && orderOpen && (
+              <div className="ml-6 mt-2 space-y-1 border-l-2 border-slate-100 pl-4">
+                {orderItems.map((order) => (
+                  <button
+                    key={order}
+                    onClick={() => setActiveTab(order)}
+                    className={`w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-left ${
+                      activeTab === order
+                      ? 'bg-indigo-50 text-indigo-600 font-medium'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                    }`}
+                  >
+                    <span className="text-sm">
+                      {order}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Product Dropdown */}
+          <div className="pt-2">
+            <button
+              onClick={() => setProductOpen(!productOpen)}
+              className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group relative text-slate-600 hover:bg-slate-50 hover:text-slate-800 ${
+                !isOpen ? 'justify-center' : 'justify-between'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-blue-500"><Shirt size={20} /></span>
+                {isOpen && (
+                  <span className="text-sm font-semibold">
+                    Products
+                  </span>
+                )}
+              </div>
+              
+              {!isOpen && (
+                <div className="absolute left-20 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                  Products
+                </div>
+              )}
+
+              {isOpen && (
+                <ChevronDown size={16} className={`transition-transform duration-300 ${
+                  productOpen ? 'rotate-180' : ''
+                }`} />
+              )}
+            </button>
+            
+            {isOpen && productOpen && (
+              <div className="ml-6 mt-2 space-y-1 border-l-2 border-slate-100 pl-4">
+                {productItems.map((product) => (
+                  <button
+                    key={product}
+                    onClick={() => setActiveTab(product)}
+                    className={`w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-left ${
+                      activeTab === product
+                      ? 'bg-indigo-50 text-indigo-600 font-medium'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                    }`}
+                  >
+                    <span className="text-sm">
+                      {product}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Pricing Dropdown */}
+          <div className="pt-2">
+            <button
+              onClick={() => setPricingOpen(!pricingOpen)}
+              className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group relative text-slate-600 hover:bg-slate-50 hover:text-slate-800 ${
+                !isOpen ? 'justify-center' : 'justify-between'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-emerald-500"><DollarSign size={20} /></span>
+                {isOpen && (
+                  <span className="text-sm font-semibold">
+                    Pricing
+                  </span>
+                )}
+              </div>
+              
+              {!isOpen && (
+                <div className="absolute left-20 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                  Pricing
+                </div>
+              )}
+
+              {isOpen && (
+                <ChevronDown size={16} className={`transition-transform duration-300 ${
+                  pricingOpen ? 'rotate-180' : ''
+                }`} />
+              )}
+            </button>
+            
+            {isOpen && pricingOpen && (
+              <div className="ml-6 mt-2 space-y-1 border-l-2 border-slate-100 pl-4">
+                {pricingItems.map((pricing) => (
+                  <button
+                    key={pricing}
+                    onClick={() => setActiveTab(pricing)}
+                    className={`w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-left ${
+                      activeTab === pricing
+                      ? 'bg-indigo-50 text-indigo-600 font-medium'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                    }`}
+                  >
+                    <span className="text-sm">
+                      {pricing}
                     </span>
                   </button>
                 ))}
