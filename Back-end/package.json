@@ -1,0 +1,16 @@
+{
+  "name": "novawear-backend",
+  "version": "1.0.0",
+  "description": "Backend API for NovaWear clothing brand",
+  "keywords": [],
+  "license": "ISC",
+  "author": "krunal",
+  "type": "yes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
