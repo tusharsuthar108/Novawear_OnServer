@@ -1,143 +1,178 @@
 import React, { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Eye, Filter } from 'lucide-react';
-import SubCategoryAddForm from './SubCategoryAddForm';
+import { 
+  Eye, Edit3, Trash2, Plus, 
+  Search, Filter, Folder, Layers, CheckCircle
+} from 'lucide-react';
+// Import your modal component
+import SubCategoryAdd from './SubCategoryAdd';
 
 const SubCategory = () => {
-  const [subCategories, setSubCategories] = useState([
-    { id: 1, name: 'T-Shirts', masterCategory: 'Clothing', category: 'Men\'s Clothing', description: 'Men\'s casual t-shirts', status: 'Active', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=80' },
-    { id: 2, name: 'Dresses', masterCategory: 'Clothing', category: 'Women\'s Clothing', description: 'Women\'s dresses', status: 'Active', image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=80' },
-    { id: 3, name: 'Handbags', masterCategory: 'Accessories', category: 'Bags', description: 'Designer handbags', status: 'Active', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=80' },
-    { id: 4, name: 'Rings', masterCategory: 'Accessories', category: 'Jewelry', description: 'Fashion rings', status: 'Active', image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=80' },
-    { id: 5, name: 'Running Shoes', masterCategory: 'Footwear', category: 'Sneakers', description: 'Athletic running shoes', status: 'Active', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=80' },
+  // --- STATE FOR MODAL ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Sample Data for Sub-Categories
+  const [categories, setCategories] = useState([
+    {
+      id: 1,
+      name: "Smartphones",
+      image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=80&h=80&fit=crop",
+      directory: "Electronics / Smartphones",
+      description: "Latest mobile devices and high-end smartphones.",
+      status: "Active"
+    },
+    {
+      id: 2,
+      name: "Kitchenware",
+      image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=80&h=80&fit=crop",
+      directory: "Home Appliances / Kitchenware",
+      description: "Modern kitchen tools and essential cookware.",
+      status: "Active"
+    }
   ]);
 
-  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
-  const [selectedMasterCategory, setSelectedMasterCategory] = useState('');
+  // Data needed for the Modal's Master Category dropdown
+  const [masterCategories] = useState([
+    { id: 1, name: "Electronics" },
+    { id: 2, name: "Home Appliances" },
+    { id: 3, name: "Fashion" }
+  ]);
 
-  const masterCategories = ['Clothing', 'Accessories', 'Footwear', 'Electronics'];
-  
-  const categoryMap = {
-    'Clothing': ['Men\'s Clothing', 'Women\'s Clothing'],
-    'Accessories': ['Bags', 'Jewelry'],
-    'Footwear': ['Sneakers', 'Formal Shoes'],
-    'Electronics': ['Phones', 'Laptops']
-  };
+  // Logic to calculate totals
+  const totalCategories = categories.length;
+  const activeCategories = categories.filter(cat => cat.status === 'Active').length;
 
-  const handleAddSubCategory = (newSubCategory) => {
-    const subCategory = {
-      id: subCategories.length + 1,
-      ...newSubCategory
+  // --- SAVE LOGIC ---
+  const handleSaveSubCategory = (formData) => {
+    // Find the Master Category name to build the directory string
+    const masterName = masterCategories.find(m => m.id === parseInt(formData.masterCategoryId))?.name || "General";
+
+    const newEntry = {
+      id: categories.length + 1,
+      name: formData.name,
+      image: formData.imagePreview || "https://via.placeholder.com/80",
+      directory: `${masterName} / ${formData.name}`,
+      description: formData.description,
+      status: formData.status
     };
-    setSubCategories([...subCategories, subCategory]);
-  };
 
-  const filteredSubCategories = selectedMasterCategory 
-    ? subCategories.filter(sub => sub.masterCategory === selectedMasterCategory)
-    : subCategories;
+    setCategories([...categories, newEntry]);
+    setIsModalOpen(false);
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Sub Categories</h2>
-          <p className="text-slate-500">Manage sub categories under categories</p>
+          <h1 className="text-2xl font-bold text-slate-900">Sub-Categories</h1>
+          <p className="text-slate-500 text-sm mt-1">Organize and manage your secondary product levels</p>
         </div>
+        {/* Trigger Button */}
         <button 
-          onClick={() => setIsAddFormOpen(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-2xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg shadow-indigo-200"
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 font-semibold text-sm"
         >
           <Plus size={18} />
-          Add Sub Category
+          <span>New Sub-Category</span>
         </button>
       </div>
 
-      {/* Search & Filter */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search sub categories..."
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
+      {/* Stats Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
+          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+            <Layers size={24} />
           </div>
-          <select 
-            value={selectedMasterCategory}
-            onChange={(e) => setSelectedMasterCategory(e.target.value)}
-            className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-          >
-            <option value="">All Master Categories</option>
-            {masterCategories.map(master => (
-              <option key={master} value={master}>{master}</option>
-            ))}
-          </select>
-          <button className="flex items-center gap-2 px-6 py-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors">
-            <Filter size={18} />
-            Filter
-          </button>
+          <div>
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total</p>
+            <h3 className="text-2xl font-bold text-slate-900">{totalCategories}</h3>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+            <CheckCircle size={24} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Active</p>
+            <h3 className="text-2xl font-bold text-slate-900">{activeCategories}</h3>
+          </div>
         </div>
       </div>
 
-      {/* Sub Categories Table */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg overflow-hidden">
+      {/* Search & Filter Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <div className="relative w-full md:w-96">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search sub-categories..." 
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
+          />
+        </div>
+        <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+          <Filter size={16} />
+          Filters
+        </button>
+      </div>
+
+      {/* Table Section */}
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Sub Category Name</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Category</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Master Category</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Description</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-slate-700">Actions</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[13px] uppercase tracking-wider">
+                <th className="px-6 py-4 font-semibold">Category Details</th>
+                <th className="px-6 py-4 font-semibold">Directory</th>
+                <th className="px-6 py-4 font-semibold">Description</th>
+                <th className="px-6 py-4 font-semibold">Status</th>
+                <th className="px-6 py-4 font-semibold text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredSubCategories.map((subCategory) => (
-                <tr key={subCategory.id} className="hover:bg-slate-50 transition-colors">
+              {categories.map((cat) => (
+                <tr key={cat.id} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden shrink-0">
-                        <img src={subCategory.image} alt={subCategory.name} className="w-full h-full object-cover" />
+                    <div className="flex items-center gap-4">
+                      <img 
+                        src={cat.image} 
+                        alt={cat.name} 
+                        className="w-12 h-12 rounded-xl object-cover border border-slate-100 shadow-sm shrink-0"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900 text-sm leading-tight">{cat.name}</span>
+                        <span className="text-[11px] text-slate-400 font-semibold tracking-wider mt-1">ID: #SC-00{cat.id}</span>
                       </div>
-                      <div className="font-semibold text-slate-800">{subCategory.name}</div>
                     </div>
                   </td>
+
                   <td className="px-6 py-4">
-                    <span className="px-3 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium">
-                      {subCategory.category}
+                    <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-2 py-1 rounded-md text-sm">
+                      <Folder size={14} className="text-slate-400" />
+                      <span className="font-medium text-slate-600">{cat.directory}</span>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-4">
+                    <p className="text-sm text-slate-500 max-w-xs truncate" title={cat.description}>
+                      {cat.description}
+                    </p>
+                  </td>
+
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide
+                      ${cat.status === 'Active' 
+                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                        : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
+                      {cat.status}
                     </span>
                   </td>
+
                   <td className="px-6 py-4">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">
-                      {subCategory.masterCategory}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-slate-600">{subCategory.description}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      subCategory.status === 'Active' 
-                        ? 'bg-emerald-100 text-emerald-600' 
-                        : 'bg-slate-100 text-slate-500'
-                    }`}>
-                      {subCategory.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 text-slate-400 hover:text-blue-500 transition-colors rounded-lg hover:bg-blue-50">
-                        <Eye size={16} />
-                      </button>
-                      <button className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50">
-                        <Edit size={16} />
-                      </button>
-                      <button className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50">
-                        <Trash2 size={16} />
-                      </button>
+                    <div className="flex items-center justify-center gap-2">
+                      <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="View"><Eye size={18} /></button>
+                      <button className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Edit"><Edit3 size={18} /></button>
+                      <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete"><Trash2 size={18} /></button>
                     </div>
                   </td>
                 </tr>
@@ -145,26 +180,25 @@ const SubCategory = () => {
             </tbody>
           </table>
         </div>
-      </div>
 
-      {/* Add New Sub Category Card */}
-      <div 
-        onClick={() => setIsAddFormOpen(true)}
-        className="bg-white/60 backdrop-blur-sm rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center hover:border-indigo-300 transition-colors cursor-pointer"
-      >
-        <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Plus size={24} className="text-indigo-500" />
+        {/* Footer */}
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+          <p className="text-sm text-slate-500 font-medium tracking-tight">
+            Showing <span className="text-slate-900 font-bold">{totalCategories}</span> entries
+          </p>
+          <div className="flex gap-2">
+            <button className="px-3 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition-colors">Prev</button>
+            <button className="px-3 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition-colors">Next</button>
+          </div>
         </div>
-        <h3 className="text-lg font-semibold text-slate-700 mb-2">Add New Sub Category</h3>
-        <p className="text-slate-500">Create a new sub category under a category</p>
       </div>
 
-      {/* Add Sub Category Form Modal */}
-      <SubCategoryAddForm 
-        isOpen={isAddFormOpen}
-        onClose={() => setIsAddFormOpen(false)}
-        onSave={handleAddSubCategory}
-        categoryMap={categoryMap}
+      {/* MODAL INTEGRATION */}
+      <SubCategoryAdd 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSave={handleSaveSubCategory}
+        masterCategories={masterCategories}
       />
     </div>
   );
