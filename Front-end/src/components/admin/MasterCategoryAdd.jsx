@@ -5,9 +5,11 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
   const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
-    status: 'Active',
+    slug: '',
     description: '',
     image: null,
+    icon_url: '',
+    is_active: true,
     imagePreview: ''
   });
 
@@ -24,10 +26,22 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
-    onSave(formData);
+    
+    const formDataToSend = new FormData();
+    formDataToSend.append('name', formData.name);
+    formDataToSend.append('slug', formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'));
+    formDataToSend.append('description', formData.description);
+    formDataToSend.append('icon_url', formData.icon_url);
+    formDataToSend.append('is_active', formData.is_active);
+    
+    if (formData.image) {
+      formDataToSend.append('image', formData.image);
+    }
+    
+    onSave(formDataToSend);
     onClose();
   };
 
@@ -75,44 +89,45 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
               />
             </div>
 
-            {/* 2. Status Toggle */}
+            {/* 2. Slug */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
-                Status
+                Slug (URL-friendly name)
               </label>
-              <div className="flex p-1 bg-slate-100 rounded-2xl w-full">
-                <button
-                  type="button"
-                  onClick={() => setFormData({...formData, status: 'Active'})}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                    formData.status === 'Active' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'
-                  }`}
-                >
-                  <Check size={16} /> Active
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({...formData, status: 'Inactive'})}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                    formData.status === 'Inactive' ? 'bg-white shadow-sm text-slate-500' : 'text-slate-400'
-                  }`}
-                >
-                  <AlertCircle size={16} /> Inactive
-                </button>
-              </div>
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium"
+                placeholder="e.g. electronics (auto-generated if empty)"
+              />
             </div>
 
-            {/* 3. Image Upload */}
+            {/* 3. Description */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
+                Description
+              </label>
+              <textarea
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium resize-none"
+                placeholder="Briefly describe this category..."
+              />
+            </div>
+
+            {/* 4. Image Upload */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
                 Category Image
               </label>
               <div 
                 onClick={() => fileInputRef.current.click()}
-                className="group cursor-pointer border-2 border-dashed border-slate-200 rounded-3xl p-4 bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all flex flex-col items-center justify-center min-h-[160px]"
+                className="group cursor-pointer border-2 border-dashed border-slate-200 rounded-3xl p-4 bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all flex flex-col items-center justify-center min-h-[120px]"
               >
                 {formData.imagePreview ? (
-                  <div className="relative w-full h-40">
+                  <div className="relative w-full h-32">
                     <img src={formData.imagePreview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-xl transition-opacity">
                       <span className="text-white text-xs font-bold bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">Change Image</span>
@@ -137,19 +152,47 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
               </div>
             </div>
 
-            {/* 4. Description */}
+            {/* 5. Icon URL */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
-                Description
+                Icon URL (Optional)
               </label>
-              <textarea
-                rows={4}
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium resize-none"
-                placeholder="Briefly describe this category..."
+              <input
+                type="url"
+                value={formData.icon_url}
+                onChange={(e) => setFormData({...formData, icon_url: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium"
+                placeholder="https://example.com/icon.svg"
               />
             </div>
+            {/* 6. Status Toggle */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
+                Status
+              </label>
+              <div className="flex p-1 bg-slate-100 rounded-2xl w-full">
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, is_active: true})}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    formData.is_active ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'
+                  }`}
+                >
+                  <Check size={16} /> Active
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, is_active: false})}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    !formData.is_active ? 'bg-white shadow-sm text-slate-500' : 'text-slate-400'
+                  }`}
+                >
+                  <AlertCircle size={16} /> Inactive
+                </button>
+              </div>
+            </div>
+
+            {/* Image Preview - removed as it's now handled in upload section */}
           </form>
         </div>
 

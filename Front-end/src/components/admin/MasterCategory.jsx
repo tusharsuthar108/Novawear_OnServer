@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Eye, Edit3, Trash2, Plus, 
   Search, Filter, Folder, Layers, CheckCircle
@@ -6,52 +6,105 @@ import {
 import MasterCategoryAdd from './MasterCategoryAdd';
 
 const MasterCategory = () => {
-  // State to manage the categories list
-  const [categories, setCategories] = useState([
-    {
-      id: 1,
-      name: "Electronics",
-      image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=80&h=80&fit=crop",
-      directory: "Products",
-      description: "All kinds of electronic devices and tech accessories.",
-      status: "Active"
-    },
-    {
-      id: 2,
-      name: "Home Appliances",
-      image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=80&h=80&fit=crop",
-      directory: "Home",
-      description: "Smart kitchen tools, refrigerators, and washing machines.",
-      status: "Inactive"
-    },
-    {
-      id: 3,
-      name: "Fashion",
-      image: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=80&h=80&fit=crop",
-      directory: "Apparel",
-      description: "Clothing, footwear, and accessories for all seasons.",
-      status: "Active"
-    }
-  ]);
-
-  // State to manage Modal visibility
+  const [categories, setCategories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  // Fetch categories from API
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setError(null);
+      // Use relative path - let Vite proxy handle it
+      const response = await fetch('/api/master-categories');
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('Fetched data:', data);
+      setCategories(data);
+    } catch (error) {
+      setError(`Failed to load categories: ${error.message}`);
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Logic to calculate totals
   const totalCategories = categories.length;
-  const activeCategories = categories.filter(cat => cat.status === 'Active').length;
+  const activeCategories = categories.filter(cat => cat.is_active).length;
 
-  // Function to add new category from the modal
-  const handleSaveCategory = (newCategory) => {
-    const categoryWithId = {
-      ...newCategory,
-      id: categories.length + 1 // Simple ID generation
-    };
-    setCategories([...categories, categoryWithId]);
+  const handleSaveCategory = async (formData) => {
+    try {
+      setError(null);
+      setSuccess(null);
+      
+      const response = await fetch('/api/master-categories', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        setSuccess('Category added successfully!');
+        fetchCategories();
+        setIsModalOpen(false);
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || 'Failed to save category');
+      }
+    } catch (error) {
+      setError(`Save failed: ${error.message}`);
+      console.error('Error saving category:', error);
+    }
   };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this category?')) {
+      try {
+        const response = await fetch(`/api/master-categories/${id}`, {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          fetchCategories(); // Refresh the list
+        }
+      } catch (error) {
+        console.error('Error deleting category:', error);
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-slate-500">Loading categories...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* Error Alert */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+      
+      {/* Success Alert */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+          <strong>Success:</strong> {success}
+        </div>
+      )}
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -123,17 +176,17 @@ const MasterCategory = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {categories.map((cat) => (
-                <tr key={cat.id} className="hover:bg-slate-50/50 transition-colors group">
+                <tr key={cat.master_category_id} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <img 
-                        src={cat.image || "https://via.placeholder.com/80"} 
+                        src={cat.image_url || "https://via.placeholder.com/80"} 
                         alt={cat.name} 
                         className="w-12 h-12 rounded-xl object-cover border border-slate-100 shadow-sm shrink-0"
                       />
                       <div className="flex flex-col">
                         <span className="font-bold text-slate-900 text-sm leading-tight">{cat.name}</span>
-                        <span className="text-[11px] text-slate-400 font-semibold tracking-wider mt-0.5">ID: #00{cat.id}</span>
+                        <span className="text-[11px] text-slate-400 font-semibold tracking-wider mt-0.5">ID: #{cat.master_category_id}</span>
                       </div>
                     </div>
                   </td>
@@ -141,22 +194,22 @@ const MasterCategory = () => {
                   <td className="px-6 py-4 text-sm text-slate-500">
                     <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-2 py-1 rounded-md">
                       <Folder size={14} className="text-slate-400" />
-                      <span className="font-medium text-slate-600">{cat.directory || "Uncategorized"}</span>
+                      <span className="font-medium text-slate-600">{cat.slug || "Uncategorized"}</span>
                     </div>
                   </td>
 
                   <td className="px-6 py-4">
                     <p className="text-sm text-slate-500 max-w-xs truncate" title={cat.description}>
-                      {cat.description || "No description provided."}
+                      {cat.description || 'No description'}
                     </p>
                   </td>
 
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
-                      ${cat.status === 'Active' 
+                      ${cat.is_active 
                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
                         : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-                      {cat.status}
+                      {cat.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
 
@@ -168,7 +221,10 @@ const MasterCategory = () => {
                       <button className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all">
                         <Edit3 size={18} />
                       </button>
-                      <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                      <button 
+                        onClick={() => handleDelete(cat.master_category_id)}
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                      >
                         <Trash2 size={18} />
                       </button>
                     </div>
