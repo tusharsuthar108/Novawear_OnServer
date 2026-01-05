@@ -9,12 +9,10 @@ import PaymentPage from "./pages/PaymentPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import ProductGalleryPage from "./pages/ProductGalleryPage";
 import TrackOrderPage from "./pages/TrackOrderPage";
-import OrdersPage from "./pages/OrdersPage";
-
+import OrdersPage from "./pages/OrdersPage";;
 import AdminDashboard from "./pages/admin/dashboard";
-
-
-
+import CategoryPage from "./pages/CategoryPage";
+import Tranding from "./pages/Tranding";
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -30,6 +28,8 @@ function AppContent() {
 
           {/* Product Details */}
           <Route path="/product/:id" element={<ProductDetailsPage />} />
+          <Route path="/category" element={<CategoryPage />} />
+          <Route path="/tranding" element={<Tranding />} />
 
           {/* Cart */}
           <Route path="/cart" element={<CartPage />} />
@@ -50,6 +50,7 @@ function AppContent() {
           
           {/* Admin Dashboard */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/add-product" element={<AddProduct />} />
           
       </Routes>
     </>
