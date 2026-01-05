@@ -1,456 +1,344 @@
-import React, { useState } from 'react';
-import { 
-  LayoutDashboard, ShoppingBag, Truck, Users, 
-  BarChart3, LogOut, ChevronRight, 
-  Plus, Search, Package, Bell, Settings,
-  PanelLeftClose, PanelLeftOpen, ChevronDown, Tag,
-  Award, FileText, Shirt, DollarSign
-} from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  LayoutDashboard,
+  Box,
+  Truck,
+  ShoppingCart,
+  Layers,
+  Bookmark,
+  Tag,
+  CircleDollarSign,
+  ChevronDown,
+  Menu,
+  X,
+  Settings,
+  LogOut,
+  Command,
+  ChevronLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Search,
+  Bell,
+} from "lucide-react";
+
+// Import all components
 import MasterCategory from '../../components/admin/MasterCategory';
 import Category from '../../components/admin/Category';
 import SubCategory from '../../components/admin/SubCategory';
 import SubSubCategory from '../../components/admin/SubSubCategory';
 import AdminOrders from './Orders';
 import OrderDetails from '../../components/admin/OrderDetails';
+// import BrandList from './BrandList';
+// import AddBrand from './AddBrand';
+// import ProductList from './ProductList';
+// import AddProduct from './AddProduct';
+// import PriceList from './PriceList';
+// import OrderList from './OrderList';
+// import OrderDetails from './OrderDetails';
+// import StockLevels from './StockLevels';
+// import Warehouse from './Warehouse';
+// import Adjustments from './Adjustments';
+// import Pending from './Pending';
+// import InTransit from './InTransit';
+// import Delivered from './Delivered';
+// import NewProduct from './NewProduct';
+// import Management from './Management';
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('Insights');
   const [isOpen, setIsOpen] = useState(true);
-  const [categoryOpen, setCategoryOpen] = useState(false);
-  const [brandOpen, setBrandOpen] = useState(false);
-  const [orderOpen, setOrderOpen] = useState(false);
-  const [productOpen, setProductOpen] = useState(false);
-  const [pricingOpen, setPricingOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState({});
+  const [activeItem, setActiveItem] = useState("Dashboard");
+  const [currentComponent, setCurrentComponent] = useState(null);
 
-  const menuItems = [
-    { name: 'Insights', icon: <LayoutDashboard size={20} />, color: 'text-blue-500' },
-    { name: 'Inventory', icon: <ShoppingBag size={20} />, color: 'text-emerald-500' },
-    { name: 'Shipments', icon: <Truck size={20} />, color: 'text-orange-500' },
-    { name: 'Customers', icon: <Users size={20} />, color: 'text-purple-500' },
-    { name: 'Analytics', icon: <BarChart3 size={20} />, color: 'text-pink-500' },
-  ];
-
-  const categoryItems = [
-    'Master Category',
-    'Category', 
-    'Sub Category',
-    'Sub Sub Category'
-  ];
-
-  const brandItems = [
-    'Brand List',
-    'Add Brand'
-  ];
-
-  const orderItems = [
-    'Order List',
-    'Order Details'
-  ];
-
-  const productItems = [
-    'Product List',
-    'Add Product',
-    'Size Chart',
-    'Stock Management'
-  ];
-
-  const pricingItems = [
-    'Price List',
-    'Discount Rules',
-    'Bulk Pricing'
-  ];
-
-  const renderContent = () => {
-    if (activeTab === 'Master Category') {
-      return <MasterCategory />;
-    }
-    if (activeTab === 'Category') {
-      return <Category />;
-    }
-    if (activeTab === 'Sub Category') {
-      return <SubCategory />;
-    }
-    if (activeTab === 'Sub Sub Category') {
-      return <SubSubCategory />;
-    }
-    if (activeTab === 'Order List') {
-      return <AdminOrders />;
-    }
-    if (activeTab === 'Order Details') {
-      return <OrderDetails onBack={() => setActiveTab('Order List')} />;
-    }
-    
-    return (
-      <div className="bg-white/60 backdrop-blur-sm rounded-3xl border border-white/20 shadow-xl shadow-slate-200/20 p-16 text-center">
-        <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-          <Package size={32} className="text-indigo-400" />
-        </div>
-        <h3 className="text-xl font-semibold text-slate-700 mb-2">{activeTab} Module</h3>
-        <p className="text-slate-500 max-w-md mx-auto">
-          This section is ready for development. Start building your {activeTab.toLowerCase()} management features here.
-        </p>
-        <button className="mt-6 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg shadow-indigo-200">
-          Get Started
-        </button>
-      </div>
-    );
+  // Component mapping
+  const getComponent = (itemName) => {
+    const components = {
+      "Master Category": <MasterCategory />,
+      "Category": <Category />,
+      "Sub Category": <SubCategory />,
+      "Sub Sub Category": <SubSubCategory />,
+      "Order List": <AdminOrders />,
+      "Order Details": <OrderDetails />,
+      // "Brand List": <BrandList />,
+      // "Add Brand": <AddBrand />,
+      // "Product List": <ProductList />,
+      // "Add Product": <AddProduct />,
+      // "Price List": <PriceList />,
+      // "Order List": <OrderList />,
+      // "Order Details": <OrderDetails />,
+      // "Stock Levels": <StockLevels />,
+      // "Warehouse": <Warehouse />,
+      // "Adjustments": <Adjustments />,
+      // "Pending": <Pending />,
+      // "In Transit": <InTransit />,
+      // "Delivered": <Delivered />,
+      // "New Product": <NewProduct />,
+      // "Management": <Management />
+    };
+    return components[itemName] || null;
   };
 
+  const toggleSidebar = () => setIsOpen(!isOpen);
+
+  const toggleDropdown = (menu) => {
+    if (!isOpen) setIsOpen(true);
+    setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
+  };
+
+  const menuItems = [
+    { title: "Dashboard", icon: <LayoutDashboard size={20} /> },
+    {
+      title: "Inventory",
+      icon: <Box size={20} />,
+      submenu: true,
+      submenuItems: ["Stock Levels", "Warehouse", "Adjustments"],
+    },
+    {
+      title: "Shipment",
+      icon: <Truck size={20} />,
+      submenu: true,
+      submenuItems: ["Pending", "In Transit", "Delivered"],
+    },
+    {
+      title: "Orders",
+      icon: <Truck size={20} />,
+      submenu: true,
+      submenuItems: ["Order List", "Order Details"],
+    },
+    {
+      title: "Category",
+      icon: <Box size={20} />,
+      submenu: true,
+      submenuItems: ["Master Category", "Category", "Sub Category" , "Sub Sub Category"],
+    },
+
+    { title: "Brand", icon: <Bookmark size={20} /> },
+    {
+      title: "Product",
+      icon: <Tag size={20} />,
+      submenu: true,
+      submenuItems: ["New Product", "Management"],
+    },
+    { title: "Pricing", icon: <CircleDollarSign size={20} /> },
+  ];
+
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="flex bg-slate-50 min-h-screen font-sans antialiased">
       
-      {/* --- MODERN SIDEBAR --- */}
-      <aside 
-        className={`${
-          isOpen ? 'w-72' : 'w-20'
-        } bg-white/80 backdrop-blur-xl border-r border-white/20 shadow-2xl shadow-slate-200/50 flex flex-col sticky top-0 h-screen transition-all duration-500 ease-out hidden lg:flex`}
+      <aside
+        className={`h-screen sticky top-0 bg-white border-r border-slate-200 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col
+        ${isOpen ? "w-[280px]" : "w-[80px]"}`}
       >
-        {/* Header */}
-        <div className={`p-6 mb-2 flex items-center ${isOpen ? 'justify-between' : 'justify-center'}`}>
-          {isOpen && (
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                N
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-800">NeuWear</h1>
-                <p className="text-xs text-slate-500 font-medium">Admin Portal</p>
-              </div>
+        {/* Header Section - Internal Toggle */}
+        <div className="h-20 flex items-center justify-between px-5 shrink-0">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100 shrink-0">
+              <Command className="text-white" size={22} />
             </div>
-          )}
-          <button 
-            onClick={() => setIsOpen(!isOpen)} 
-            className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600 transition-all duration-200"
+            <span
+              className={`font-bold text-slate-900 text-lg transition-all duration-300 whitespace-nowrap ${
+                !isOpen && "opacity-0 invisible"
+              }`}
+            >
+              NovaAdmin
+            </span>
+          </div>
+
+          {/* Integrated Toggle Button - INSIDE the sidebar */}
+          <button
+            onClick={toggleSidebar}
+            className={`p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-colors
+            ${!isOpen && "hidden"}`} // Hide icon button when closed, or keep it to toggle back
           >
-            {isOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+            <PanelLeftClose size={20} />
           </button>
         </div>
-        
-        {/* Navigation */}
-        <nav className="flex-1 px-4 space-y-2">
-          {menuItems.map((item) => (
-            <button
-              key={item.name}
-              onClick={() => setActiveTab(item.name)}
-              className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group relative ${
-                activeTab === item.name 
-                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-200' 
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
-              } ${!isOpen ? 'justify-center' : 'justify-between'}`}
-            >
-              <div className="flex items-center gap-4">
-                <span className={`${activeTab === item.name ? 'text-white' : item.color} transition-colors`}>
-                  {item.icon}
-                </span>
-                {isOpen && (
-                  <span className="text-sm font-semibold">
-                    {item.name}
-                  </span>
-                )}
-              </div>
-              
-              {!isOpen && (
-                <div className="absolute left-20 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
-                  {item.name}
-                </div>
-              )}
 
-              {isOpen && activeTab === item.name && (
-                <ChevronRight size={16} className="opacity-70" />
-              )}
-            </button>
-          ))}
-          
-          {/* Category Dropdown */}
-          <div className="pt-4">
-            <div className="px-4 mb-2">
-              {isOpen && <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Management</p>}
-            </div>
+        {/* Small Toggle for Closed State */}
+        {!isOpen && (
+          <div className="flex justify-center py-2">
             <button
-              onClick={() => setCategoryOpen(!categoryOpen)}
-              className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group relative text-slate-600 hover:bg-slate-50 hover:text-slate-800 ${
-                !isOpen ? 'justify-center' : 'justify-between'
-              }`}
+              onClick={toggleSidebar}
+              className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-colors"
             >
-              <div className="flex items-center gap-4">
-                <span className="text-amber-500"><Tag size={20} /></span>
-                {isOpen && (
-                  <span className="text-sm font-semibold">
-                    Categories
-                  </span>
-                )}
-              </div>
-              
-              {!isOpen && (
-                <div className="absolute left-20 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Categories
-                </div>
-              )}
-
-              {isOpen && (
-                <ChevronDown size={16} className={`transition-transform duration-300 ${
-                  categoryOpen ? 'rotate-180' : ''
-                }`} />
-              )}
+              <PanelLeftOpen size={20} />
             </button>
+          </div>
+        )}
+
+        {/* Navigation Items */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto no-scrollbar">
+          {menuItems.map((item, idx) => {
+            const isActive = activeItem === item.title;
+            const hasActiveSubmenu = item.submenuItems?.some(sub => activeItem === sub);
+            const shouldShowAsActive = isActive || hasActiveSubmenu;
             
-            {isOpen && categoryOpen && (
-              <div className="ml-6 mt-2 space-y-1 border-l-2 border-slate-100 pl-4">
-                {categoryItems.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setActiveTab(category)}
-                    className={`w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-left ${
-                      activeTab === category
-                      ? 'bg-indigo-50 text-indigo-600 font-medium'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+            return (
+              <div key={idx} className="relative">
+                <button
+                  onClick={() => {
+                    // 1️⃣ If sidebar is closed, just open it without toggling dropdown
+                    if (!isOpen) {
+                      setIsOpen(true);
+                      return; // Exit early, don't toggle dropdown
+                    }
+
+                    // 2️⃣ Set active item
+                    setActiveItem(item.title);
+
+                    // 3️⃣ Toggle submenu (open/close) only if sidebar is already open
+                    if (item.submenu) {
+                      setOpenMenus(prev => {
+                        const isCurrentlyOpen = prev[item.title];
+                        return {
+                          [item.title]: !isCurrentlyOpen
+                        };
+                      });
+                    } else {
+                      setOpenMenus({}); // 👈 close all if normal item
+                    }
+                  }}
+                  className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 group
+                    ${
+                      shouldShowAsActive
+                        ? "bg-indigo-50 text-indigo-700 font-semibold"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                    }
+                    ${!isOpen && "justify-center"}`}
+                >
+                  <span
+                    className={`shrink-0 ${
+                      shouldShowAsActive
+                        ? "text-indigo-600"
+                        : "text-slate-400 group-hover:text-indigo-600"
                     }`}
                   >
-                    <span className="text-sm">
-                      {category}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Brand Dropdown */}
-          <div className="pt-2">
-            <button
-              onClick={() => setBrandOpen(!brandOpen)}
-              className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group relative text-slate-600 hover:bg-slate-50 hover:text-slate-800 ${
-                !isOpen ? 'justify-center' : 'justify-between'
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <span className="text-rose-500"><Award size={20} /></span>
-                {isOpen && (
-                  <span className="text-sm font-semibold">
-                    Brand
+                    {item.icon}
                   </span>
-                )}
-              </div>
-              
-              {!isOpen && (
-                <div className="absolute left-20 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Brand
-                </div>
-              )}
 
-              {isOpen && (
-                <ChevronDown size={16} className={`transition-transform duration-300 ${
-                  brandOpen ? 'rotate-180' : ''
-                }`} />
-              )}
-            </button>
-            
-            {isOpen && brandOpen && (
-              <div className="ml-6 mt-2 space-y-1 border-l-2 border-slate-100 pl-4">
-                {brandItems.map((brand) => (
-                  <button
-                    key={brand}
-                    onClick={() => setActiveTab(brand)}
-                    className={`w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-left ${
-                      activeTab === brand
-                      ? 'bg-indigo-50 text-indigo-600 font-medium'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                  <span
+                    className={`flex-1 text-[14px] text-left transition-all duration-300 ${
+                      !isOpen ? "opacity-0 w-0 hidden" : "opacity-100"
                     }`}
                   >
-                    <span className="text-sm">
-                      {brand}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Order Dropdown */}
-          <div className="pt-2">
-            <button
-              onClick={() => setOrderOpen(!orderOpen)}
-              className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group relative text-slate-600 hover:bg-slate-50 hover:text-slate-800 ${
-                !isOpen ? 'justify-center' : 'justify-between'
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <span className="text-green-500"><FileText size={20} /></span>
-                {isOpen && (
-                  <span className="text-sm font-semibold">
-                    Order
+                    {item.title}
                   </span>
-                )}
-              </div>
-              
-              {!isOpen && (
-                <div className="absolute left-20 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Order
+
+                  {item.submenu && isOpen && (
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-300 ${
+                        openMenus[item.title] ? "rotate-180" : ""
+                      }`}
+                    />
+                  )}
+                </button>
+
+                {/* Submenu Dropdown with Internal Guide Line */}
+                <div
+                  className={`overflow-hidden transition-all duration-500 ease-in-out
+                  ${
+                    openMenus[item.title] && isOpen
+                      ? "max-h-[200px] opacity-100 mt-1"
+                      : "max-h-0 opacity-0"
+                  }`}
+                >
+                  <div className="ml-5 border-l border-slate-200 pl-4 space-y-1 py-1">
+                    {item.submenuItems?.map((sub, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setActiveItem(sub);
+                          setCurrentComponent(getComponent(sub));
+                        }}
+                        className={`w-full text-left py-2 text-[13px] transition-colors block font-medium ${
+                          activeItem === sub 
+                            ? 'text-indigo-600 font-semibold' 
+                            : 'text-slate-500 hover:text-indigo-600'
+                        }`}
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
-
-              {isOpen && (
-                <ChevronDown size={16} className={`transition-transform duration-300 ${
-                  orderOpen ? 'rotate-180' : ''
-                }`} />
-              )}
-            </button>
-            
-            {isOpen && orderOpen && (
-              <div className="ml-6 mt-2 space-y-1 border-l-2 border-slate-100 pl-4">
-                {orderItems.map((order) => (
-                  <button
-                    key={order}
-                    onClick={() => setActiveTab(order)}
-                    className={`w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-left ${
-                      activeTab === order
-                      ? 'bg-indigo-50 text-indigo-600 font-medium'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                    }`}
-                  >
-                    <span className="text-sm">
-                      {order}
-                    </span>
-                  </button>
-                ))}
               </div>
-            )}
-          </div>
-
-          {/* Product Dropdown */}
-          <div className="pt-2">
-            <button
-              onClick={() => setProductOpen(!productOpen)}
-              className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group relative text-slate-600 hover:bg-slate-50 hover:text-slate-800 ${
-                !isOpen ? 'justify-center' : 'justify-between'
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <span className="text-blue-500"><Shirt size={20} /></span>
-                {isOpen && (
-                  <span className="text-sm font-semibold">
-                    Products
-                  </span>
-                )}
-              </div>
-              
-              {!isOpen && (
-                <div className="absolute left-20 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Products
-                </div>
-              )}
-
-              {isOpen && (
-                <ChevronDown size={16} className={`transition-transform duration-300 ${
-                  productOpen ? 'rotate-180' : ''
-                }`} />
-              )}
-            </button>
-            
-            {isOpen && productOpen && (
-              <div className="ml-6 mt-2 space-y-1 border-l-2 border-slate-100 pl-4">
-                {productItems.map((product) => (
-                  <button
-                    key={product}
-                    onClick={() => setActiveTab(product)}
-                    className={`w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-left ${
-                      activeTab === product
-                      ? 'bg-indigo-50 text-indigo-600 font-medium'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                    }`}
-                  >
-                    <span className="text-sm">
-                      {product}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Pricing Dropdown */}
-          <div className="pt-2">
-            <button
-              onClick={() => setPricingOpen(!pricingOpen)}
-              className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-300 group relative text-slate-600 hover:bg-slate-50 hover:text-slate-800 ${
-                !isOpen ? 'justify-center' : 'justify-between'
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <span className="text-emerald-500"><DollarSign size={20} /></span>
-                {isOpen && (
-                  <span className="text-sm font-semibold">
-                    Pricing
-                  </span>
-                )}
-              </div>
-              
-              {!isOpen && (
-                <div className="absolute left-20 bg-slate-800 text-white text-xs font-medium px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                  Pricing
-                </div>
-              )}
-
-              {isOpen && (
-                <ChevronDown size={16} className={`transition-transform duration-300 ${
-                  pricingOpen ? 'rotate-180' : ''
-                }`} />
-              )}
-            </button>
-            
-            {isOpen && pricingOpen && (
-              <div className="ml-6 mt-2 space-y-1 border-l-2 border-slate-100 pl-4">
-                {pricingItems.map((pricing) => (
-                  <button
-                    key={pricing}
-                    onClick={() => setActiveTab(pricing)}
-                    className={`w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-left ${
-                      activeTab === pricing
-                      ? 'bg-indigo-50 text-indigo-600 font-medium'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                    }`}
-                  >
-                    <span className="text-sm">
-                      {pricing}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+            );
+          })}
         </nav>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-slate-100">
-          <div className={`bg-gradient-to-r from-slate-50 to-slate-100 rounded-2xl p-4 flex items-center gap-3 ${!isOpen ? 'justify-center' : ''}`}>
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-2xl overflow-hidden shrink-0 shadow-lg">
-               <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100" alt="Admin" className="w-full h-full object-cover" />
-            </div>
+        {/* Footer Profile */}
+        <div className="p-4 border-t border-slate-100 shrink-0">
+          <div
+            className={`flex items-center gap-3 p-2 rounded-2xl transition-all duration-300 ${
+              isOpen ? "hover:bg-slate-50" : "justify-center"
+            }`}
+          >
+            <img
+              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Krunal"
+              className="w-9 h-9 rounded-lg bg-indigo-50"
+              alt="user"
+            />
             {isOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">Alex Rivera</p>
-                <p className="text-xs text-slate-500">Store Manager</p>
+                <p className="text-[13px] font-bold text-slate-900 truncate">
+                  Krunal N.
+                </p>
+                <p className="text-[11px] font-medium text-slate-400">
+                  System Admin
+                </p>
               </div>
             )}
-            {isOpen && (
-              <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
-                <Settings size={16} />
-              </button>
-            )}
           </div>
-          
-          <button className={`w-full flex items-center gap-3 px-4 py-3 mt-3 text-slate-500 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50 ${!isOpen ? 'justify-center' : ''}`}>
-            <LogOut size={18} />
-            {isOpen && <span className="text-sm font-medium">Sign Out</span>}
-          </button>
         </div>
       </aside>
 
-      {/* --- MAIN CONTENT --- */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        {/* Content Area */}
-        {renderContent()}
-      </main>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Navbar */}
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+          {/* Search Bar */}
+          <div className="flex items-center gap-4 flex-1 max-w-md">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Right Side Icons */}
+          <div className="flex items-center gap-3">
+            {/* Notifications */}
+            <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors relative">
+              <Bell size={20} />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            </button>
+
+            {/* Settings */}
+            <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+              <Settings size={20} />
+            </button>
+
+            {/* Logout */}
+            <button className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+              <LogOut size={20} />
+            </button>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-1 p-6">
+          {currentComponent || (
+            <div className="bg-white rounded-lg border border-slate-200 p-6">
+              <h1 className="text-2xl font-bold text-slate-900 mb-4">Dashboard Content</h1>
+              <p className="text-slate-600">Select a menu item to view content...</p>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 };
