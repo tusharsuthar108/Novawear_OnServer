@@ -11,7 +11,9 @@ import ProductGalleryPage from "./pages/ProductGalleryPage";
 import TrackOrderPage from "./pages/TrackOrderPage";
 import OrdersPage from "./pages/OrdersPage";
 
+
 import AdminDashboard from "./pages/admin/dashboard";
+import AdminOrders from "./pages/admin/Orders";
 
 
 
@@ -50,6 +52,9 @@ function AppContent() {
           
           {/* Admin Dashboard */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/orders" element={<AdminOrders />} />
+
+        
           
       </Routes>
     </>
