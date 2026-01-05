@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Save, Upload, Check, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, Save, Upload, Check, AlertCircle } from 'lucide-react';
 
-const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
+const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
   const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -13,33 +13,20 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
     imagePreview: ''
   });
 
-  // Function to generate slug with name and random number
-  const generateSlug = (text) => {
-    const baseSlug = text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '') // Remove special chars
-      .replace(/[\s_-]+/g, '-') // Replace spaces/underscores with -
-      .replace(/^-+|-+$/g, ''); // Trim - from ends
-    
-    if (!baseSlug) return '';
-    
-    // Add a random 4-digit number at the end
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    return `${baseSlug}-${randomNum}`;
-  };
-
-  // Auto-generate slug when name changes
+  // Populate form with existing category data
   useEffect(() => {
-    if (formData.name) {
-      setFormData(prev => ({
-        ...prev,
-        slug: generateSlug(formData.name)
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, slug: '' }));
+    if (categoryData) {
+      setFormData({
+        name: categoryData.name || '',
+        slug: categoryData.slug || '',
+        description: categoryData.description || '',
+        image: null,
+        icon_url: categoryData.icon_url || '',
+        is_active: categoryData.is_active,
+        imagePreview: categoryData.image_url || ''
+      });
     }
-  }, [formData.name]);
+  }, [categoryData]);
 
   if (!isOpen) return null;
 
@@ -60,7 +47,7 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
     
     const formDataToSend = new FormData();
     formDataToSend.append('name', formData.name);
-    formDataToSend.append('slug', formData.slug);
+    formDataToSend.append('slug', formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'));
     formDataToSend.append('description', formData.description);
     formDataToSend.append('icon_url', formData.icon_url);
     formDataToSend.append('is_active', formData.is_active);
@@ -75,22 +62,32 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
 
+      {/* Modal Container */}
       <div className="relative bg-white w-full max-w-lg rounded-[32px] shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
         
+        {/* Fixed Header */}
         <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between shrink-0 bg-white">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Add Master Category</h2>
-            <p className="text-slate-500 text-xs mt-0.5">Create a new top-level category</p>
+            <h2 className="text-xl font-bold text-slate-900">Edit Master Category</h2>
+            <p className="text-slate-500 text-xs mt-0.5">Update category information</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 text-slate-400 rounded-full transition-all">
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-full transition-all"
+          >
             <X size={20} />
           </button>
         </div>
 
+        {/* Scrollable Form Body */}
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <form id="masterCategoryForm" onSubmit={handleSubmit} className="p-8 space-y-6">
+          <form id="editCategoryForm" onSubmit={handleSubmit} className="p-8 space-y-6">
             
             {/* 1. Category Name */}
             <div className="space-y-2">
@@ -107,29 +104,18 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
               />
             </div>
 
-            {/* 2. Slug with Generate Button */}
+            {/* 2. Slug */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
-                Slug (Auto-generated)
+                Slug (URL-friendly name)
               </label>
-              <div className="relative flex items-center">
-                <input
-                  type="text"
-                  value={formData.slug}
-                  onChange={(e) => setFormData({...formData, slug: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium pr-12"
-                  placeholder="electronics-1234"
-                />
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, slug: generateSlug(formData.name) }))}
-                  disabled={!formData.name}
-                  className="absolute right-3 p-2 text-slate-400 hover:text-indigo-600 disabled:opacity-30 transition-colors"
-                  title="Regenerate Slug"
-                >
-                  <RefreshCw size={18} />
-                </button>
-              </div>
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium"
+                placeholder="e.g. electronics (auto-generated if empty)"
+              />
             </div>
 
             {/* 3. Description */}
@@ -167,10 +153,17 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
                     <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-slate-400 group-hover:text-indigo-500 transition-colors border border-slate-100">
                       <Upload size={20} />
                     </div>
-                    <p className="text-xs font-bold text-slate-500 mt-3">Click to upload image</p>
+                    <p className="text-xs font-bold text-slate-500 mt-3 group-hover:text-slate-700">Click to upload image</p>
+                    <p className="text-[10px] text-slate-400 mt-1">PNG, JPG up to 5MB</p>
                   </>
                 )}
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleImageChange}
+                />
               </div>
             </div>
 
@@ -217,17 +210,22 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
           </form>
         </div>
 
+        {/* Fixed Footer Actions */}
         <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex gap-4 shrink-0">
-          <button type="button" onClick={onClose} className="flex-1 px-6 py-3.5 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-2xl border border-slate-200">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 px-6 py-3.5 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-2xl transition-all border border-slate-200"
+          >
             Cancel
           </button>
           <button
             type="submit"
-            form="masterCategoryForm"
+            form="editCategoryForm"
             className="flex-[2] flex items-center justify-center gap-2 px-6 py-3.5 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all font-bold text-sm shadow-xl shadow-indigo-100"
           >
             <Save size={18} />
-            Save Category
+            Update Category
           </button>
         </div>
       </div>
@@ -235,4 +233,4 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
   );
 };
 
-export default MasterCategoryAdd;
+export default MasterCategoryEdit;

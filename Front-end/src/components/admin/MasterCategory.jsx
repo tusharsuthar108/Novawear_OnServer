@@ -1,13 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Eye, Edit3, Trash2, Plus, 
-  Search, Filter, Folder, Layers, CheckCircle
-} from 'lucide-react';
-import MasterCategoryAdd from './MasterCategoryAdd';
+import React, { useState, useEffect } from "react";
+import {
+  Eye,
+  Edit3,
+  Trash2,
+  Plus,
+  Search,
+  Filter,
+  Folder,
+  Layers,
+  CheckCircle,
+} from "lucide-react";
+
+import MasterCategoryAdd from "./MasterCategoryAdd";
+import MasterCategoryEdit from "./MasterCategoryEdit";
+import MasterCategoryView from "./MasterCategoryView";
 
 const MasterCategory = () => {
   const [categories, setCategories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -21,16 +34,18 @@ const MasterCategory = () => {
     try {
       setError(null);
       // Use relative path - let Vite proxy handle it
-      const response = await fetch('/api/master-categories');
+      const response = await fetch("/api/master-categories");
       if (!response.ok) {
-        throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+        throw new Error(
+          `Server error: ${response.status} - ${response.statusText}`
+        );
       }
       const data = await response.json();
-      console.log('Fetched data:', data);
+      console.log("Fetched data:", data);
       setCategories(data);
     } catch (error) {
       setError(`Failed to load categories: ${error.message}`);
-      console.error('Error fetching categories:', error);
+      console.error("Error fetching categories:", error);
     } finally {
       setLoading(false);
     }
@@ -38,46 +53,83 @@ const MasterCategory = () => {
 
   // Logic to calculate totals
   const totalCategories = categories.length;
-  const activeCategories = categories.filter(cat => cat.is_active).length;
+  const activeCategories = categories.filter((cat) => cat.is_active).length;
 
   const handleSaveCategory = async (formData) => {
     try {
       setError(null);
       setSuccess(null);
-      
-      const response = await fetch('/api/master-categories', {
-        method: 'POST',
+
+      const response = await fetch("/api/master-categories", {
+        method: "POST",
         body: formData,
       });
-      
+
       if (response.ok) {
         const result = await response.json();
-        setSuccess('Category added successfully!');
+        setSuccess("Category added successfully!");
         fetchCategories();
         setIsModalOpen(false);
         setTimeout(() => setSuccess(null), 3000);
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.details || errorData.error || 'Failed to save category');
+        throw new Error(
+          errorData.details || errorData.error || "Failed to save category"
+        );
       }
     } catch (error) {
       setError(`Save failed: ${error.message}`);
-      console.error('Error saving category:', error);
+      console.error("Error saving category:", error);
+    }
+  };
+
+  const handleEdit = (category) => {
+    setSelectedCategory(category);
+    setIsEditModalOpen(true);
+  };
+
+  const handleView = (category) => {
+    setSelectedCategory(category);
+    setIsViewModalOpen(true);
+  };
+
+  const handleUpdateCategory = async (formData) => {
+    try {
+      setError(null);
+      const response = await fetch(
+        `/api/master-categories/${selectedCategory.master_category_id}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        setSuccess("Category updated successfully!");
+        fetchCategories();
+        setIsEditModalOpen(false);
+        setSelectedCategory(null);
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        throw new Error("Failed to update category");
+      }
+    } catch (error) {
+      setError(`Update failed: ${error.message}`);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
+    if (window.confirm("Are you sure you want to delete this category?")) {
       try {
         const response = await fetch(`/api/master-categories/${id}`, {
-          method: 'DELETE',
+          method: "DELETE",
         });
-        
+
         if (response.ok) {
           fetchCategories(); // Refresh the list
         }
       } catch (error) {
-        console.error('Error deleting category:', error);
+        console.error("Error deleting category:", error);
       }
     }
   };
@@ -98,7 +150,7 @@ const MasterCategory = () => {
           <strong>Error:</strong> {error}
         </div>
       )}
-      
+
       {/* Success Alert */}
       {success && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
@@ -108,10 +160,14 @@ const MasterCategory = () => {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Master Categories</h1>
-          <p className="text-slate-500 text-sm mt-1">Manage and organize your product hierarchy</p>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Master Categories
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Manage and organize your product hierarchy
+          </p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 font-semibold text-sm"
         >
@@ -127,8 +183,12 @@ const MasterCategory = () => {
             <Layers size={24} />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Categories</p>
-            <h3 className="text-2xl font-bold text-slate-900">{totalCategories}</h3>
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">
+              Total Categories
+            </p>
+            <h3 className="text-2xl font-bold text-slate-900">
+              {totalCategories}
+            </h3>
           </div>
         </div>
 
@@ -137,8 +197,12 @@ const MasterCategory = () => {
             <CheckCircle size={24} />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Active Categories</p>
-            <h3 className="text-2xl font-bold text-slate-900">{activeCategories}</h3>
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">
+              Active Categories
+            </p>
+            <h3 className="text-2xl font-bold text-slate-900">
+              {activeCategories}
+            </h3>
           </div>
         </div>
       </div>
@@ -146,10 +210,13 @@ const MasterCategory = () => {
       {/* Filter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
         <div className="relative w-full md:w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search categories..." 
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            size={18}
+          />
+          <input
+            type="text"
+            placeholder="Search categories..."
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
           />
         </div>
@@ -176,17 +243,24 @@ const MasterCategory = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {categories.map((cat) => (
-                <tr key={cat.master_category_id} className="hover:bg-slate-50/50 transition-colors group">
+                <tr
+                  key={cat.master_category_id}
+                  className="hover:bg-slate-50/50 transition-colors group"
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={cat.image_url || "https://via.placeholder.com/80"} 
-                        alt={cat.name} 
+                      <img
+                        src={cat.image_url || "https://via.placeholder.com/80"}
+                        alt={cat.name}
                         className="w-12 h-12 rounded-xl object-cover border border-slate-100 shadow-sm shrink-0"
                       />
                       <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 text-sm leading-tight">{cat.name}</span>
-                        <span className="text-[11px] text-slate-400 font-semibold tracking-wider mt-0.5">ID: #{cat.master_category_id}</span>
+                        <span className="font-bold text-slate-900 text-sm leading-tight">
+                          {cat.name}
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-semibold tracking-wider mt-0.5">
+                          ID: #{cat.master_category_id}
+                        </span>
                       </div>
                     </div>
                   </td>
@@ -194,34 +268,49 @@ const MasterCategory = () => {
                   <td className="px-6 py-4 text-sm text-slate-500">
                     <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-2 py-1 rounded-md">
                       <Folder size={14} className="text-slate-400" />
-                      <span className="font-medium text-slate-600">{cat.slug || "Uncategorized"}</span>
+                      <span className="font-medium text-slate-600">
+                        {cat.slug || "Uncategorized"}
+                      </span>
                     </div>
                   </td>
 
                   <td className="px-6 py-4">
-                    <p className="text-sm text-slate-500 max-w-xs truncate" title={cat.description}>
-                      {cat.description || 'No description'}
+                    <p
+                      className="text-sm text-slate-500 max-w-xs truncate"
+                      title={cat.description}
+                    >
+                      {cat.description || "No description"}
                     </p>
                   </td>
 
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
-                      ${cat.is_active 
-                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                        : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-                      {cat.is_active ? 'Active' : 'Inactive'}
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
+                      ${
+                        cat.is_active
+                          ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                          : "bg-slate-100 text-slate-500 border border-slate-200"
+                      }`}
+                    >
+                      {cat.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
 
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
-                      <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
+                      <button
+                        onClick={() => handleView(cat)} // Call handleView
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                      >
                         <Eye size={18} />
                       </button>
-                      <button className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all">
+                      <button
+                        onClick={() => handleEdit(cat)}
+                        className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                      >
                         <Edit3 size={18} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(cat.master_category_id)}
                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                       >
@@ -237,19 +326,46 @@ const MasterCategory = () => {
 
         {/* Table Footer */}
         <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-          <p className="text-sm text-slate-500 font-medium">Showing {totalCategories} categories</p>
+          <p className="text-sm text-slate-500 font-medium">
+            Showing {totalCategories} categories
+          </p>
           <div className="flex gap-2">
-            <button className="px-3 py-1 text-sm border border-slate-200 rounded-lg bg-white text-slate-600 disabled:opacity-50">Prev</button>
-            <button className="px-3 py-1 text-sm border border-slate-200 rounded-lg bg-white text-slate-600">Next</button>
+            <button className="px-3 py-1 text-sm border border-slate-200 rounded-lg bg-white text-slate-600 disabled:opacity-50">
+              Prev
+            </button>
+            <button className="px-3 py-1 text-sm border border-slate-200 rounded-lg bg-white text-slate-600">
+              Next
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Modal Component */}
-      <MasterCategoryAdd 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      {/* Add Modal */}
+      <MasterCategoryAdd
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onSave={handleSaveCategory}
+      />
+
+      {/* Edit Modal */}
+      <MasterCategoryEdit
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedCategory(null);
+        }}
+        onSave={handleUpdateCategory}
+        categoryData={selectedCategory}
+      />
+
+      {/* View Modal */}
+      <MasterCategoryView
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedCategory(null);
+        }}
+        category={selectedCategory}
       />
     </div>
   );
