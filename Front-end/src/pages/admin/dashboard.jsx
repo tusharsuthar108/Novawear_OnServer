@@ -10,6 +10,8 @@ import MasterCategory from '../../components/admin/MasterCategory';
 import Category from '../../components/admin/Category';
 import SubCategory from '../../components/admin/SubCategory';
 import SubSubCategory from '../../components/admin/SubSubCategory';
+import AdminOrders from './Orders';
+import OrderDetails from '../../components/admin/OrderDetails';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('Insights');
@@ -70,6 +72,12 @@ const Dashboard = () => {
     }
     if (activeTab === 'Sub Sub Category') {
       return <SubSubCategory />;
+    }
+    if (activeTab === 'Order List') {
+      return <AdminOrders />;
+    }
+    if (activeTab === 'Order Details') {
+      return <OrderDetails onBack={() => setActiveTab('Order List')} />;
     }
     
     return (

@@ -9,10 +9,21 @@ import PaymentPage from "./pages/PaymentPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import ProductGalleryPage from "./pages/ProductGalleryPage";
 import TrackOrderPage from "./pages/TrackOrderPage";
+<<<<<<< HEAD
 import OrdersPage from "./pages/OrdersPage";;
 import AdminDashboard from "./pages/admin/dashboard";
 import CategoryPage from "./pages/CategoryPage";
 import Tranding from "./pages/Tranding";
+=======
+import OrdersPage from "./pages/OrdersPage";
+
+
+import AdminDashboard from "./pages/admin/dashboard";
+import AdminOrders from "./pages/admin/Orders";
+
+
+
+>>>>>>> d882f40a49330acd8911032b96316ef4f42226aa
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -50,7 +61,13 @@ function AppContent() {
           
           {/* Admin Dashboard */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+<<<<<<< HEAD
           <Route path="/admin/add-product" element={<AddProduct />} />
+=======
+          <Route path="/admin/orders" element={<AdminOrders />} />
+
+        
+>>>>>>> d882f40a49330acd8911032b96316ef4f42226aa
           
       </Routes>
     </>
