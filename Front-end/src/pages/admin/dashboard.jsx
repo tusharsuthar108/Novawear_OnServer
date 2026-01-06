@@ -28,6 +28,8 @@ import SubCategory from '../../components/admin/SubCategory';
 import SubSubCategory from '../../components/admin/SubSubCategory';
 import AdminOrders from './Orders';
 import OrderDetails from '../../components/admin/OrderDetails';
+import Inventory from '../../components/admin/Inventory';
+import AddProduct from "../../components/admin/AddProduct";
 // import BrandList from './BrandList';
 // import AddBrand from './AddBrand';
 // import ProductList from './ProductList';
@@ -59,6 +61,7 @@ const Dashboard = () => {
       "Sub Sub Category": <SubSubCategory />,
       "Order List": <AdminOrders />,
       "Order Details": <OrderDetails />,
+      "Inventory": <Inventory />,
       // "Brand List": <BrandList />,
       // "Add Brand": <AddBrand />,
       // "Product List": <ProductList />,
@@ -91,7 +94,7 @@ const Dashboard = () => {
       title: "Inventory",
       icon: <Box size={20} />,
       submenu: true,
-      submenuItems: ["Stock Levels", "Warehouse", "Adjustments"],
+      submenuItems: ["Inventory", "Stock Levels", "Warehouse", "Adjustments"],
     },
     {
       title: "Shipment",
@@ -340,6 +343,7 @@ const Dashboard = () => {
         </main>
       </div>
     </div>
+
   );
 };
 
