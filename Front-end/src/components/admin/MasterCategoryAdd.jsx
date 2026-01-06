@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Save, Upload, Check, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, Save, Upload, Check, AlertCircle } from 'lucide-react';
 
 const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
   const fileInputRef = useRef(null);
@@ -13,20 +13,14 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
     imagePreview: ''
   });
 
-  // Function to generate slug with name and random number
+  // Function to generate clean slug based strictly on name
   const generateSlug = (text) => {
-    const baseSlug = text
+    return text
       .toLowerCase()
       .trim()
       .replace(/[^\w\s-]/g, '') // Remove special chars
       .replace(/[\s_-]+/g, '-') // Replace spaces/underscores with -
       .replace(/^-+|-+$/g, ''); // Trim - from ends
-    
-    if (!baseSlug) return '';
-    
-    // Add a random 4-digit number at the end
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    return `${baseSlug}-${randomNum}`;
   };
 
   // Auto-generate slug when name changes
@@ -107,29 +101,18 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
               />
             </div>
 
-            {/* 2. Slug with Generate Button */}
+            {/* 2. Slug (Auto-generated, No Refresh Button) */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
                 Slug (Auto-generated)
               </label>
-              <div className="relative flex items-center">
-                <input
-                  type="text"
-                  value={formData.slug}
-                  onChange={(e) => setFormData({...formData, slug: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium pr-12"
-                  placeholder="electronics-1234"
-                />
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, slug: generateSlug(formData.name) }))}
-                  disabled={!formData.name}
-                  className="absolute right-3 p-2 text-slate-400 hover:text-indigo-600 disabled:opacity-30 transition-colors"
-                  title="Regenerate Slug"
-                >
-                  <RefreshCw size={18} />
-                </button>
-              </div>
+              <input
+                type="text"
+                readOnly
+                value={formData.slug}
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl outline-none font-medium text-slate-500 cursor-not-allowed"
+                placeholder="electronics"
+              />
             </div>
 
             {/* 3. Description */}

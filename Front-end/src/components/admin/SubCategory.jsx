@@ -1,62 +1,270 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Eye, Edit3, Trash2, Plus, 
   Search, Filter, Folder, Layers, CheckCircle
 } from 'lucide-react';
-// Import your modal component
+// Import your modal components
 import SubCategoryAdd from './SubCategoryAdd';
+import SubCategoryEdit from './SubCategoryEdit';
+import SubCategoryView from './SubCategoryView';
+import { fetchCategories } from '../../api/Category.api';
+import { fetchMasterCategories } from '../../api/masterCategory.api';
+import { fetchSubCategories, createSubCategory, updateSubCategory, deleteSubCategory } from '../../api/subCategory.api';
+import { testBackendConnection } from '../../api/test.api';
 
 const SubCategory = () => {
-  // --- STATE FOR MODAL ---
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // --- STATE FOR MODALS ---
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
 
-  // Sample Data for Sub-Categories
-  const [categories, setCategories] = useState([
-    {
-      id: 1,
-      name: "Smartphones",
-      image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=80&h=80&fit=crop",
-      directory: "Electronics / Smartphones",
-      description: "Latest mobile devices and high-end smartphones.",
-      status: "Active"
-    },
-    {
-      id: 2,
-      name: "Kitchenware",
-      image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=80&h=80&fit=crop",
-      directory: "Home Appliances / Kitchenware",
-      description: "Modern kitchen tools and essential cookware.",
-      status: "Active"
+  // State for subcategories fetched from database
+  const [subCategories, setSubCategories] = useState([]);
+  const [loadingSubCategories, setLoadingSubCategories] = useState(true);
+  const [error, setError] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('checking');
+
+  // Data for the dropdown inside the SubCategoryAdd modal
+  const [categories, setCategories] = useState([]);
+  const [masterCategories, setMasterCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [masterCategoryFilter, setMasterCategoryFilter] = useState('all');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  
+  // Filter state for the dropdown
+  const [selectedFilter, setSelectedFilter] = useState('master');
+
+  // Retry function
+  const retryConnection = async () => {
+    setConnectionStatus('checking');
+    setError(null);
+    setLoadingSubCategories(true);
+    
+    try {
+      await testBackendConnection();
+      setConnectionStatus('connected');
+      
+      const response = await fetchSubCategories();
+      if (response && response.success) {
+        setSubCategories(response.data || []);
+      } else {
+        setError('Failed to load subcategories: ' + (response?.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Retry failed:', error);
+      setConnectionStatus('failed');
+      setError('Backend server connection failed');
+    } finally {
+      setLoadingSubCategories(false);
     }
-  ]);
+  };
 
-  // Data needed for the Modal's Master Category dropdown
-  const [masterCategories] = useState([
-    { id: 1, name: "Electronics" },
-    { id: 2, name: "Home Appliances" },
-    { id: 3, name: "Fashion" }
-  ]);
-
-  // Logic to calculate totals
-  const totalCategories = categories.length;
-  const activeCategories = categories.filter(cat => cat.status === 'Active').length;
-
-  // --- SAVE LOGIC ---
-  const handleSaveSubCategory = (formData) => {
-    // Find the Master Category name to build the directory string
-    const masterName = masterCategories.find(m => m.id === parseInt(formData.masterCategoryId))?.name || "General";
-
-    const newEntry = {
-      id: categories.length + 1,
-      name: formData.name,
-      image: formData.imagePreview || "https://via.placeholder.com/80",
-      directory: `${masterName} / ${formData.name}`,
-      description: formData.description,
-      status: formData.status
+  // Fetch subcategories from database
+  useEffect(() => {
+    const loadSubCategories = async () => {
+      try {
+        setLoadingSubCategories(true);
+        setError(null);
+        
+        // Test backend connection first
+        console.log('Testing backend connection...');
+        try {
+          await testBackendConnection();
+          console.log('Backend connection successful');
+          setConnectionStatus('connected');
+        } catch (connError) {
+          console.error('Backend connection test failed:', connError);
+          setConnectionStatus('failed');
+          setError('Backend server connection failed');
+          setLoadingSubCategories(false);
+          return;
+        }
+        
+        console.log('Fetching subcategories...');
+        const response = await fetchSubCategories();
+        console.log('SubCategories response:', response);
+        
+        if (response && response.success) {
+          console.log('SubCategories data:', response.data);
+          console.log('First subcategory:', response.data[0]);
+          setSubCategories(response.data || []);
+        } else {
+          setError('Failed to load subcategories: ' + (response?.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error fetching subcategories:', error);
+        setError('Backend server connection failed');
+      } finally {
+        setLoadingSubCategories(false);
+      }
     };
 
-    setCategories([...categories, newEntry]);
-    setIsModalOpen(false);
+    loadSubCategories();
+  }, []);
+
+  // Fetch categories and master categories from database for dropdown
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch both categories and master categories
+        const [categoriesResponse, masterCategoriesResponse] = await Promise.all([
+          fetchCategories(),
+          fetchMasterCategories()
+        ]);
+        
+        if (categoriesResponse.success) {
+          setCategories(categoriesResponse.data);
+        }
+        
+        if (masterCategoriesResponse.success) {
+          setMasterCategories(masterCategoriesResponse.data);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // Get search suggestions
+  const getSearchSuggestions = () => {
+    if (!searchTerm.trim()) return [];
+    
+    const suggestions = new Set();
+    subCategories.forEach(subCat => {
+      if (subCat.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+        suggestions.add(subCat.name);
+      }
+      if (subCat.slug?.toLowerCase().includes(searchTerm.toLowerCase())) {
+        suggestions.add(subCat.slug);
+      }
+      if (subCat.description?.toLowerCase().includes(searchTerm.toLowerCase())) {
+        suggestions.add(subCat.description);
+      }
+    });
+    return Array.from(suggestions).slice(0, 5);
+  };
+
+  const searchSuggestions = getSearchSuggestions();
+
+  // Filter subcategories based on search and filters
+  const filteredSubCategories = subCategories.filter(subCat => {
+    const matchesSearch = subCat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         subCat.slug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         subCat.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && subCat.is_active) ||
+                         (statusFilter === 'inactive' && !subCat.is_active);
+    
+    const matchesCategory = categoryFilter === 'all' ||
+                           subCat.category_name === categoryFilter;
+    
+    const matchesMasterCategory = masterCategoryFilter === 'all' ||
+                                 subCat.master_category_name === masterCategoryFilter;
+    
+    return matchesSearch && matchesStatus && matchesCategory && matchesMasterCategory;
+  });
+
+  // Logic to calculate totals
+  const totalCategories = filteredSubCategories.length;
+  const activeCategories = filteredSubCategories.filter(subCat => subCat.is_active).length;
+
+  // --- SAVE LOGIC ---
+  const handleSaveSubCategory = async (formData) => {
+    try {
+      console.log('Saving subcategory:', formData);
+      const response = await createSubCategory({
+        category_id: formData.category_id,
+        name: formData.name,
+        slug: formData.slug,
+        is_active: formData.is_active,
+        description: formData.description,
+        imageFile: formData.imageFile
+      });
+      console.log('Create subcategory response:', response);
+      if (response.success) {
+        // Refresh subcategories list
+        const updatedResponse = await fetchSubCategories();
+        if (updatedResponse.success) {
+          setSubCategories(updatedResponse.data);
+        }
+        setIsAddModalOpen(false);
+      } else {
+        console.error('Failed to create subcategory');
+      }
+    } catch (error) {
+      console.error('Error saving subcategory:', error);
+    }
+  };
+
+  // --- VIEW LOGIC ---
+  const handleViewSubCategory = (subCategory) => {
+    setSelectedSubCategory(subCategory);
+    setIsViewModalOpen(true);
+  };
+
+  // --- EDIT LOGIC ---
+  const handleEditSubCategory = (subCategory) => {
+    setSelectedSubCategory(subCategory);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateSubCategory = async (formData) => {
+    try {
+      console.log('Updating subcategory:', formData);
+      const response = await updateSubCategory(formData.sub_category_id, {
+        category_id: formData.category_id,
+        name: formData.name,
+        slug: formData.slug,
+        is_active: formData.is_active,
+        description: formData.description,
+        imageFile: formData.imageFile,
+        updateImage: formData.updateImage
+      });
+      console.log('Update subcategory response:', response);
+      if (response.success) {
+        // Refresh subcategories list
+        const updatedResponse = await fetchSubCategories();
+        if (updatedResponse.success) {
+          setSubCategories(updatedResponse.data);
+        }
+        setIsEditModalOpen(false);
+        setSelectedSubCategory(null);
+      } else {
+        console.error('Failed to update subcategory');
+      }
+    } catch (error) {
+      console.error('Error updating subcategory:', error);
+    }
+  };
+
+  // --- DELETE LOGIC ---
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this subcategory?')) {
+      try {
+        await deleteSubCategory(id);
+        // Refresh subcategories list
+        const updatedResponse = await fetchSubCategories();
+        if (updatedResponse.success) {
+          setSubCategories(updatedResponse.data);
+        }
+      } catch (error) {
+        console.error('Error deleting subcategory:', error);
+        setError('Failed to delete subcategory');
+      }
+    }
   };
 
   return (
@@ -69,7 +277,7 @@ const SubCategory = () => {
         </div>
         {/* Trigger Button */}
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsAddModalOpen(true)}
           className="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 font-semibold text-sm"
         >
           <Plus size={18} />
@@ -102,19 +310,147 @@ const SubCategory = () => {
 
       {/* Search & Filter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
-        <div className="relative w-full md:w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search sub-categories..." 
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
-          />
+        <div className="flex items-center gap-4 flex-1">
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input 
+              type="text" 
+              placeholder="Search sub-categories..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
+            />
+            
+            {/* Search Suggestions */}
+            {showSuggestions && searchTerm && searchSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                {searchSuggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setSearchTerm(suggestion);
+                      setShowSuggestions(false);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-slate-50 text-sm text-slate-700 border-b border-slate-100 last:border-b-0"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Status Filter */}
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all min-w-[120px]"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          
+          {/* Master Category Filter */}
+          <select 
+            value={masterCategoryFilter}
+            onChange={(e) => setMasterCategoryFilter(e.target.value)}
+            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all min-w-[150px]"
+          >
+            <option value="all">All Masters</option>
+            {masterCategories.map((master) => (
+              <option key={master.master_category_id} value={master.name}>
+                {master.name}
+              </option>
+            ))}
+          </select>
+          
+          {/* Category Filter */}
+          <select 
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all min-w-[150px]"
+          >
+            <option value="all">All Categories</option>
+            {categories.map((category) => (
+              <option key={category.category_id} value={category.name}>
+                {category.name}
+              </option>
+            ))}
+          </select>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
-          <Filter size={16} />
-          Filters
+        
+        <button 
+          onClick={() => {
+            setSearchTerm('');
+            setStatusFilter('all');
+            setCategoryFilter('all');
+            setMasterCategoryFilter('all');
+          }}
+          className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+        >
+          Clear Filters
         </button>
       </div>
+
+      {/* Active Filters Display */}
+      {(searchTerm || statusFilter !== 'all' || categoryFilter !== 'all' || masterCategoryFilter !== 'all') && (
+        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-slate-600">Active filters:</span>
+            
+            {searchTerm && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 rounded-md text-xs font-medium">
+                Search: "{searchTerm}"
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="ml-1 hover:bg-indigo-200 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            
+            {statusFilter !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-medium">
+                Status: {statusFilter === 'active' ? 'Active' : 'Inactive'}
+                <button 
+                  onClick={() => setStatusFilter('all')}
+                  className="ml-1 hover:bg-emerald-200 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            
+            {masterCategoryFilter !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium">
+                Master: {masterCategoryFilter}
+                <button 
+                  onClick={() => setMasterCategoryFilter('all')}
+                  className="ml-1 hover:bg-purple-200 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            
+            {categoryFilter !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-medium">
+                Category: {categoryFilter}
+                <button 
+                  onClick={() => setCategoryFilter('all')}
+                  className="ml-1 hover:bg-amber-200 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Table Section */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
@@ -130,76 +466,143 @@ const SubCategory = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {categories.map((cat) => (
-                <tr key={cat.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      <img 
-                        src={cat.image} 
-                        alt={cat.name} 
-                        className="w-12 h-12 rounded-xl object-cover border border-slate-100 shadow-sm shrink-0"
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 text-sm leading-tight">{cat.name}</span>
-                        <span className="text-[11px] text-slate-400 font-semibold tracking-wider mt-1">ID: #SC-00{cat.id}</span>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-2 py-1 rounded-md text-sm">
-                      <Folder size={14} className="text-slate-400" />
-                      <span className="font-medium text-slate-600">{cat.directory}</span>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-slate-500 max-w-xs truncate" title={cat.description}>
-                      {cat.description}
-                    </p>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide
-                      ${cat.status === 'Active' 
-                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                        : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-                      {cat.status}
-                    </span>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="View"><Eye size={18} /></button>
-                      <button className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Edit"><Edit3 size={18} /></button>
-                      <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Delete"><Trash2 size={18} /></button>
-                    </div>
+              {loadingSubCategories ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-4 text-center text-slate-500">
+                    Loading subcategories...
                   </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-4 text-center">
+                    <div className="text-red-500 mb-2">{error}</div>
+                    <button 
+                      onClick={retryConnection}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                      Retry Connection
+                    </button>
+                  </td>
+                </tr>
+              ) : filteredSubCategories.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-4 text-center text-slate-500">
+                    {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all' || masterCategoryFilter !== 'all' 
+                      ? 'No subcategories match your filters.' 
+                      : 'No subcategories found'}
+                  </td>
+                </tr>
+              ) : (
+                filteredSubCategories.map((subCategory) => (
+                  <tr key={subCategory.sub_category_id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center shrink-0">
+                          {subCategory.image_url ? (
+                            <img 
+                              src={`http://localhost:3000${subCategory.image_url}`} 
+                              alt={subCategory.name}
+                              className="w-8 h-8 object-cover rounded"
+                            />
+                          ) : (
+                            <Folder className="text-slate-400" size={18} />
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-slate-900 text-sm">{subCategory.name}</h4>
+                          <p className="text-xs text-slate-500">{subCategory.slug}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-2 py-1 rounded-md text-sm">
+                        <Folder size={14} className="text-slate-400" />
+                        <span className="font-medium text-slate-600">{subCategory.master_category_name} / {subCategory.category_name} / {subCategory.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-slate-500 max-w-xs truncate" title={subCategory.description || "No description"}>
+                        {subCategory.description || "No description"}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                        subCategory.is_active 
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                          : 'bg-slate-50 text-slate-700 border border-slate-200'
+                      }`}>
+                        {subCategory.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleViewSubCategory(subCategory)}
+                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleEditSubCategory(subCategory)}
+                          className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                        >
+                          <Edit3 size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(subCategory.sub_category_id)}
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-
-        {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-          <p className="text-sm text-slate-500 font-medium tracking-tight">
-            Showing <span className="text-slate-900 font-bold">{totalCategories}</span> entries
-          </p>
-          <div className="flex gap-2">
-            <button className="px-3 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition-colors">Prev</button>
-            <button className="px-3 py-1.5 text-xs font-semibold border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition-colors">Next</button>
-          </div>
-        </div>
       </div>
 
-      {/* MODAL INTEGRATION */}
-      <SubCategoryAdd 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSave={handleSaveSubCategory}
-        masterCategories={masterCategories}
-      />
+      {/* View Modal */}
+      {isViewModalOpen && selectedSubCategory && (
+        <SubCategoryView 
+          isOpen={isViewModalOpen}
+          onClose={() => {
+            setIsViewModalOpen(false);
+            setSelectedSubCategory(null);
+          }}
+          subCategory={selectedSubCategory}
+        />
+      )}
+
+      {/* Add Modal */}
+      {isAddModalOpen && (
+        <SubCategoryAdd 
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSave={handleSaveSubCategory}
+          categories={categories}
+          masterCategories={masterCategories}
+          loading={loading}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {isEditModalOpen && selectedSubCategory && (
+        <SubCategoryEdit 
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedSubCategory(null);
+          }}
+          onSave={handleUpdateSubCategory}
+          categories={categories}
+          masterCategories={masterCategories}
+          subCategory={selectedSubCategory}
+          loading={loading}
+        />
+      )}
     </div>
   );
 };

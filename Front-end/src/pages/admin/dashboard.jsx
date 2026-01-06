@@ -25,7 +25,7 @@ import {
 import MasterCategory from '../../components/admin/MasterCategory';
 import Category from '../../components/admin/Category';
 import SubCategory from '../../components/admin/SubCategory';
-import SubSubCategory from '../../components/admin/SubSubCategory';
+import ProductType from '../../components/admin/ProductType';
 import AdminOrders from './Orders';
 import OrderDetails from '../../components/admin/OrderDetails';
 // import BrandList from './BrandList';
@@ -56,7 +56,7 @@ const Dashboard = () => {
       "Master Category": <MasterCategory />,
       "Category": <Category />,
       "Sub Category": <SubCategory />,
-      "Sub Sub Category": <SubSubCategory />,
+      "Product Type": <ProductType />,
       "Order List": <AdminOrders />,
       "Order Details": <OrderDetails />,
       // "Brand List": <BrandList />,
@@ -109,7 +109,7 @@ const Dashboard = () => {
       title: "Category",
       icon: <Box size={20} />,
       submenu: true,
-      submenuItems: ["Master Category", "Category", "Sub Category" , "Sub Sub Category"],
+      submenuItems: ["Master Category", "Category", "Sub Category"],
     },
 
     { title: "Brand", icon: <Bookmark size={20} /> },
@@ -117,7 +117,7 @@ const Dashboard = () => {
       title: "Product",
       icon: <Tag size={20} />,
       submenu: true,
-      submenuItems: ["New Product", "Management"],
+      submenuItems: ["Product Type", "Management"],
     },
     { title: "Pricing", icon: <CircleDollarSign size={20} /> },
   ];

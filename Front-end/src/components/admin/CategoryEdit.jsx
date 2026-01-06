@@ -1,16 +1,29 @@
-import React, { useState, useRef, useEffect } from "react";
-import { X, Save, Upload, Check, AlertCircle } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  X,
+  Save,
+  Upload,
+  Check,
+  AlertCircle,
+  ChevronDown,
+} from "lucide-react";
 
-const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
+const CategoryEdit = ({
+  isOpen,
+  onClose,
+  onSave,
+  categoryData,
+  masterCategories = [],
+}) => {
   const fileInputRef = useRef(null);
 
   const initialState = {
     name: "",
     slug: "",
+    master_category_id: "",
+    is_active: true,
     description: "",
     image: null,
-    icon_url: "",
-    is_active: true,
     imagePreview: "",
   };
 
@@ -22,29 +35,27 @@ const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
       setFormData({
         name: categoryData.name || "",
         slug: categoryData.slug || "",
+        master_category_id: categoryData.master_category_id || "",
+        is_active: categoryData.is_active ?? true,
         description: categoryData.description || "",
         image: null,
-        icon_url: categoryData.icon_url || "",
-        is_active: categoryData.is_active ?? true,
         imagePreview: categoryData.image_url || "",
       });
     }
   }, [categoryData]);
 
-  /* ================= CLEANUP IMAGE PREVIEW ================= */
+  /* ================= CLEAN IMAGE PREVIEW ================= */
   useEffect(() => {
     return () => {
-      if (formData.image && formData.imagePreview?.startsWith("blob:")) {
+      if (formData.imagePreview?.startsWith("blob:")) {
         URL.revokeObjectURL(formData.imagePreview);
       }
     };
-  }, [formData.image, formData.imagePreview]);
+  }, [formData.imagePreview]);
 
   /* ================= RESET ON CLOSE ================= */
   useEffect(() => {
-    if (!isOpen) {
-      setFormData(initialState);
-    }
+    if (!isOpen) setFormData(initialState);
   }, [isOpen]);
 
   if (!isOpen || !categoryData) return null;
@@ -64,13 +75,17 @@ const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
   /* ================= SUBMIT ================= */
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+
+    if (!formData.name || !formData.master_category_id) {
+      alert("Category name and Master Category are required");
+      return;
+    }
 
     const payload = new FormData();
     payload.append("name", formData.name);
     payload.append("slug", formData.slug);
+    payload.append("master_category_id", formData.master_category_id);
     payload.append("description", formData.description);
-    payload.append("icon_url", formData.icon_url);
     payload.append("is_active", formData.is_active);
 
     // Only send image if user selected a new one
@@ -95,10 +110,10 @@ const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
         <div className="px-8 py-6 border-b flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-900">
-              Edit Master Category
+              Edit Category
             </h2>
             <p className="text-slate-500 text-xs">
-              Update category information
+              Update category details
             </p>
           </div>
           <button
@@ -110,16 +125,12 @@ const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
         </div>
 
         {/* BODY */}
-        <div className="flex-1 overflow-y-auto">
-          <form
-            id="editCategoryForm"
-            onSubmit={handleSubmit}
-            className="p-8 space-y-6"
-          >
+        <div className="flex-1 overflow-y-auto p-8 space-y-6">
+          <form id="categoryEditForm" onSubmit={handleSubmit} className="space-y-6">
             {/* NAME */}
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase">
-                Master Category Name
+                Category Name
               </label>
               <input
                 required
@@ -145,66 +156,35 @@ const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
               />
             </div>
 
-            {/* DESCRIPTION */}
+            {/* MASTER CATEGORY */}
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase">
-                Description
+                Master Category
               </label>
-              <textarea
-                rows={3}
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className="w-full mt-2 px-4 py-3 bg-slate-50 border rounded-2xl"
-              />
-            </div>
-
-            {/* IMAGE */}
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase">
-                Category Image
-              </label>
-              <div
-                onClick={() => fileInputRef.current.click()}
-                className="mt-2 border-2 border-dashed rounded-3xl p-4 cursor-pointer bg-slate-50 text-center"
-              >
-                {formData.imagePreview ? (
-                  <img
-                    src={formData.imagePreview}
-                    alt="Preview"
-                    className="h-32 mx-auto object-contain rounded-xl"
-                  />
-                ) : (
-                  <>
-                    <Upload className="mx-auto text-slate-400" />
-                    <p className="text-xs mt-2 text-slate-500">
-                      Click to upload image
-                    </p>
-                  </>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
+              <div className="relative mt-2">
+                <select
+                  required
+                  value={formData.master_category_id}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      master_category_id: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-3 bg-slate-50 border rounded-2xl appearance-none"
+                >
+                  <option value="">Select master category</option>
+                  {masterCategories.map((m) => (
+                    <option
+                      key={m.master_category_id}
+                      value={m.master_category_id}
+                    >
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
-            </div>
-
-            {/* ICON */}
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase">
-                Icon URL
-              </label>
-              <input
-                value={formData.icon_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, icon_url: e.target.value })
-                }
-                className="w-full mt-2 px-4 py-3 bg-slate-50 border rounded-2xl"
-              />
             </div>
 
             {/* STATUS */}
@@ -237,6 +217,53 @@ const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
                 </button>
               </div>
             </div>
+
+            {/* IMAGE */}
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase">
+                Category Image
+              </label>
+              <div
+                onClick={() => fileInputRef.current.click()}
+                className="mt-2 border-2 border-dashed rounded-3xl p-4 cursor-pointer bg-slate-50 text-center"
+              >
+                {formData.imagePreview ? (
+                  <img
+                    src={formData.imagePreview}
+                    className="h-40 mx-auto object-contain rounded-xl"
+                  />
+                ) : (
+                  <>
+                    <Upload className="mx-auto text-slate-400" />
+                    <p className="text-xs mt-2 text-slate-500">
+                      Click to upload image
+                    </p>
+                  </>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </div>
+            </div>
+
+            {/* DESCRIPTION */}
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase">
+                Description
+              </label>
+              <textarea
+                rows={3}
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                className="w-full mt-2 px-4 py-3 bg-slate-50 border rounded-2xl"
+              />
+            </div>
           </form>
         </div>
 
@@ -250,11 +277,10 @@ const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
           </button>
           <button
             type="submit"
-            form="editCategoryForm"
+            form="categoryEditForm"
             className="flex-[2] bg-indigo-600 text-white rounded-2xl py-3 flex items-center justify-center gap-2"
           >
-            <Save size={18} />
-            Update Category
+            <Save size={18} /> Update Category
           </button>
         </div>
       </div>
@@ -262,4 +288,4 @@ const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
   );
 };
 
-export default MasterCategoryEdit;
+export default CategoryEdit;

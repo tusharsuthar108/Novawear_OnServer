@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Save, Upload, Check, AlertCircle, ChevronDown, Layers } from 'lucide-react';
 
-const SubCategoryAdd = ({ isOpen, onClose, onSave, categories = [], masterCategories = [] }) => {
+const SubCategoryEdit = ({ isOpen, onClose, onSave, categories = [], masterCategories = [], subCategory = null }) => {
   const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -12,6 +12,33 @@ const SubCategoryAdd = ({ isOpen, onClose, onSave, categories = [], masterCatego
     imageFile: null,
     imagePreview: ''
   });
+  const [originalImageUrl, setOriginalImageUrl] = useState('');
+
+  // Initialize form data when subCategory changes
+  useEffect(() => {
+    if (subCategory && categories.length > 0 && masterCategories.length > 0) {
+      // Find master category ID by name
+      const masterCategory = masterCategories.find(mc => mc.name === subCategory.master_category_name);
+      const masterCategoryId = masterCategory ? masterCategory.master_category_id.toString() : '';
+      
+      // Find category ID by name and master category
+      const category = categories.find(c => c.name === subCategory.category_name && c.master_category_id === parseInt(masterCategoryId));
+      const categoryId = category ? category.category_id.toString() : '';
+      
+      const imageUrl = subCategory.image_url ? `http://localhost:3000${subCategory.image_url}` : '';
+      
+      setFormData({
+        name: subCategory.name || '',
+        master_category_id: masterCategoryId,
+        category_id: categoryId,
+        is_active: subCategory.is_active !== undefined ? subCategory.is_active : true,
+        description: subCategory.description || '',
+        imageFile: null,
+        imagePreview: imageUrl
+      });
+      setOriginalImageUrl(imageUrl);
+    }
+  }, [subCategory, categories, masterCategories]);
 
   // Filter categories based on selected master category
   const filteredCategories = formData.master_category_id 
@@ -40,21 +67,12 @@ const SubCategoryAdd = ({ isOpen, onClose, onSave, categories = [], masterCatego
     
     const submitData = {
       ...formData,
-      slug: formData.name.toLowerCase().replace(/\s+/g, '-')
+      slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
+      sub_category_id: subCategory?.sub_category_id,
+      updateImage: !!formData.imageFile // true if new image, false if keep existing
     };
     
     onSave(submitData);
-    
-    // Reset form
-    setFormData({
-      name: '',
-      master_category_id: '',
-      category_id: '',
-      is_active: true,
-      description: '',
-      imageFile: null,
-      imagePreview: ''
-    });
   };
 
   return (
@@ -72,8 +90,8 @@ const SubCategoryAdd = ({ isOpen, onClose, onSave, categories = [], masterCatego
               <Layers size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Add Sub-Category</h2>
-              <p className="text-slate-500 text-xs mt-0.5">Define level-3 classification</p>
+              <h2 className="text-xl font-bold text-slate-900">Edit Sub-Category</h2>
+              <p className="text-slate-500 text-xs mt-0.5">Modify level-3 classification</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-full transition-all">
@@ -204,33 +222,41 @@ const SubCategoryAdd = ({ isOpen, onClose, onSave, categories = [], masterCatego
                 Description
               </label>
               <textarea
-                rows={3}
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium resize-none"
-                placeholder="Details about this sub-category..."
+                rows="3"
+                placeholder="Optional description..."
               />
             </div>
+
           </form>
         </div>
 
         {/* Fixed Footer */}
-        <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex gap-4 shrink-0">
-          <button onClick={onClose} className="flex-1 px-6 py-3.5 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-2xl transition-all border border-slate-200">
-            Cancel
-          </button>
-          <button
-            type="submit"
-            form="subCategoryForm"
-            className="flex-[2] flex items-center justify-center gap-2 px-6 py-3.5 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all font-bold text-sm shadow-xl shadow-indigo-100"
-          >
-            <Save size={18} />
-            Save Sub-Category
-          </button>
+        <div className="px-8 py-6 border-t border-slate-50 bg-white shrink-0">
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="subCategoryForm"
+              className="flex-1 px-6 py-3 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"
+            >
+              <Save size={18} />
+              Update Sub-Category
+            </button>
+          </div>
         </div>
+
       </div>
     </div>
   );
 };
 
-export default SubCategoryAdd;
+export default SubCategoryEdit;
