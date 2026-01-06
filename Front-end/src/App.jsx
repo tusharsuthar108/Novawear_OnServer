@@ -11,11 +11,11 @@ import ProductGalleryPage from "./pages/ProductGalleryPage";
 import TrackOrderPage from "./pages/TrackOrderPage";
 import OrdersPage from "./pages/OrdersPage";
 
+import CategoryExplorer from "./components/CategoryExplorer";
+
 
 import AdminDashboard from "./pages/admin/dashboard";
 import AdminOrders from "./pages/admin/Orders";
-
-
 
 function AppContent() {
   const location = useLocation();
@@ -32,6 +32,8 @@ function AppContent() {
 
           {/* Product Details */}
           <Route path="/product/:id" element={<ProductDetailsPage />} />
+
+          <Route path="/category-explorer" element={<CategoryExplorer />} />
 
           {/* Cart */}
           <Route path="/cart" element={<CartPage />} />

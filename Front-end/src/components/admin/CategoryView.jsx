@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, Calendar, Tag, Image, ToggleLeft, ToggleRight } from 'lucide-react';
+import { X, Calendar, Tag, Image, ToggleLeft, ToggleRight, Folder } from 'lucide-react';
 
-const MasterCategoryView = ({ isOpen, onClose, category }) => {
+const CategoryView = ({ isOpen, onClose, category }) => {
   if (!isOpen || !category) return null;
 
   return (
@@ -20,14 +20,18 @@ const MasterCategoryView = ({ isOpen, onClose, category }) => {
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-6">
             <img 
-              src={category.image_url ? `http://localhost:3000${category.image_url}` : "https://via.placeholder.com/120"} 
+              src={category.icon_url || "https://via.placeholder.com/120"} 
               alt={category.name}
               className="w-24 h-24 rounded-xl object-cover border border-slate-200"
               onError={(e) => e.target.src = "https://via.placeholder.com/120"}
             />
             <div>
               <h3 className="text-2xl font-bold text-slate-900">{category.name}</h3>
-              <p className="text-slate-500 text-sm mt-1">ID: #{category.master_category_id}</p>
+              <p className="text-slate-500 text-sm mt-1">ID: #{category.category_id}</p>
+              <div className="flex items-center gap-2 mt-2 bg-slate-100/50 w-fit px-2 py-1 rounded-md text-sm">
+                <Folder size={14} className="text-slate-400" />
+                <span className="font-medium text-slate-600">{category.master_category_name}</span>
+              </div>
             </div>
           </div>
 
@@ -72,12 +76,19 @@ const MasterCategoryView = ({ isOpen, onClose, category }) => {
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Image</p>
                   <p className="font-semibold text-slate-900">
-                    {category.image_url ? 'Available' : 'No Image'}
+                    {category.icon_url ? 'Available' : 'No Image'}
                   </p>
                 </div>
               </div>
             </div>
           </div>
+
+          {category.description && (
+            <div className="p-4 bg-slate-50 rounded-xl">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Description</p>
+              <p className="text-slate-700">{category.description}</p>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 p-6 border-t border-slate-200">
@@ -93,4 +104,4 @@ const MasterCategoryView = ({ isOpen, onClose, category }) => {
   );
 };
 
-export default MasterCategoryView;
+export default CategoryView;

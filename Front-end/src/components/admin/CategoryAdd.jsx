@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { X, Save, Upload, Check, AlertCircle, ChevronDown } from 'lucide-react';
+import { X, Upload, Save, Check, AlertCircle, ChevronDown } from 'lucide-react';
 
 const CategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [] }) => {
   const fileInputRef = useRef(null);
+  
   const [formData, setFormData] = useState({
     name: '',
     masterCategoryId: '',
@@ -11,6 +12,8 @@ const CategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [] }) => {
     image: null,
     imagePreview: ''
   });
+
+  console.log('CategoryAdd - masterCategories:', masterCategories);
 
   if (!isOpen) return null;
 
@@ -27,26 +30,50 @@ const CategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [] }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
     if (!formData.name.trim() || !formData.masterCategoryId) {
       alert("Please fill in the Category Name and select a Master Category");
       return;
     }
-    onSave(formData);
+
+    console.log('=== FRONTEND CATEGORY SUBMIT DEBUG ===');
+    console.log('formData:', formData);
+
+    const categoryPayload = {
+      name: formData.name,
+      master_category_id: formData.masterCategoryId,
+      slug: formData.name.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, ''),
+      description: formData.description,
+      is_active: formData.status === 'Active',
+      imageFile: formData.image 
+    };
+
+    console.log('categoryPayload:', categoryPayload);
+    console.log('description in payload:', categoryPayload.description);
+
+    onSave(categoryPayload);
+    
+    setFormData({
+      name: '',
+      masterCategoryId: '',
+      status: 'Active',
+      description: '',
+      image: null,
+      imagePreview: ''
+    });
+    
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
-      {/* Modal Container */}
       <div className="relative bg-white w-full max-w-lg rounded-[32px] shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
         
-        {/* Fixed Header */}
         <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between shrink-0 bg-white">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Add New Category</h2>
@@ -60,11 +87,9 @@ const CategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [] }) => {
           </button>
         </div>
 
-        {/* Scrollable Form Body */}
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           <form id="categoryForm" onSubmit={handleSubmit} className="space-y-6">
             
-            {/* 1. Category Name */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
                 Category Name
@@ -79,7 +104,6 @@ const CategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [] }) => {
               />
             </div>
 
-            {/* 2. Master Category Dropdown */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
                 Select Master Category
@@ -91,12 +115,18 @@ const CategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [] }) => {
                   onChange={(e) => setFormData({...formData, masterCategoryId: e.target.value})}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium appearance-none cursor-pointer"
                 >
-                  <option value="" disabled>Choose a master category</option>
-                  {masterCategories.map((master) => (
-                    <option key={master.id} value={master.id}>
-                      {master.name}
-                    </option>
-                  ))}
+                  <option value="" disabled>
+                    {masterCategories.length === 0 ? 'Loading master categories...' : 'Choose a master category'}
+                  </option>
+                  {masterCategories && masterCategories.length > 0 ? (
+                    masterCategories.map((master) => (
+                      <option key={master.master_category_id} value={master.master_category_id}>
+                        {master.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>No master categories available</option>
+                  )}
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                   <ChevronDown size={18} />
@@ -104,7 +134,19 @@ const CategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [] }) => {
               </div>
             </div>
 
-            {/* 3. Status Toggle */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
+                Description
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium resize-none"
+                placeholder="Brief description of the category..."
+                rows={3}
+              />
+            </div>
+
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
                 Status
@@ -131,7 +173,6 @@ const CategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [] }) => {
               </div>
             </div>
 
-            {/* 4. Image Upload */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
                 Category Image
@@ -164,24 +205,9 @@ const CategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [] }) => {
                 />
               </div>
             </div>
-
-            {/* 5. Description */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
-                Description
-              </label>
-              <textarea
-                rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium resize-none"
-                placeholder="Describe this sub-category..."
-              />
-            </div>
           </form>
         </div>
 
-        {/* Fixed Footer */}
         <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex gap-4 shrink-0">
           <button
             type="button"
