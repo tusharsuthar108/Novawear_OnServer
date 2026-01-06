@@ -28,21 +28,13 @@ import SubCategory from '../../components/admin/SubCategory';
 import ProductType from '../../components/admin/ProductType';
 import AdminOrders from './Orders';
 import OrderDetails from '../../components/admin/OrderDetails';
-<<<<<<< HEAD
+import Transactions from '../../components/admin/Transactions';
+import PricingPlans from '../../components/admin/PricingPlans';
+import Productpricing from '../../components/admin/Productpricing';
+import DiscountsCoupons from '../../components/admin/DiscountsCoupons';
+import TaxesFees from '../../components/admin/TaxesFees';
 import Inventory from '../../components/admin/Inventory';
 import AddProduct from "../../components/admin/AddProduct";
-=======
-import BrandList from '../../components/admin/BrandList';
-import AddBrand from '../../components/admin/AddBrand';
-import PricingPlans from '../../components/admin/PricingPlans';
-import ProductPricing from '../../components/admin/ProductPricing';
-import DiscountsCoupons from '../../components/admin/DiscountsCoupons';
-
-import TaxesFees from '../../components/admin/TaxesFees';
-import Transactions from '../../components/admin/Transactions';
-
-// Placeholder pricing components
->>>>>>> 13fcbe1a5025c6bc67f50d8a060d87d4eff359ac
 // import BrandList from './BrandList';
 // import AddBrand from './AddBrand';
 // import ProductList from './ProductList';
@@ -63,7 +55,12 @@ const Dashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [openMenus, setOpenMenus] = useState({});
   const [activeItem, setActiveItem] = useState("Dashboard");
-  const [currentComponent, setCurrentComponent] = useState(null);
+  const [currentComponent, setCurrentComponent] = useState(
+    <div className="bg-white rounded-lg border border-slate-200 p-6">
+      <h1 className="text-2xl font-bold text-slate-900 mb-4">Dashboard Overview</h1>
+      <p className="text-slate-600">Welcome to NovaWear Admin Panel. Select a menu item to get started.</p>
+    </div>
+  );
 
   // Component mapping
   const getComponent = (itemName) => {
@@ -74,16 +71,13 @@ const Dashboard = () => {
       "Product Type": <ProductType />,
       "Order List": <AdminOrders />,
       "Order Details": <OrderDetails />,
-<<<<<<< HEAD
       "Inventory": <Inventory />,
-=======
-      "Brand": <BrandList key="brand-list" />,
+      "Transactions": <Transactions />,
       "Pricing Plans": <PricingPlans />,
-      "Product Pricing": <ProductPricing />,
+      "Product Pricing": <Productpricing />,
       "Discounts & Coupons": <DiscountsCoupons />,
       "Taxes & Fees": <TaxesFees />,
-      "Transactions": <Transactions />,
->>>>>>> 13fcbe1a5025c6bc67f50d8a060d87d4eff359ac
+      "Add Product": <AddProduct />,
       // "Brand List": <BrandList />,
       // "Add Brand": <AddBrand />,
       // "Product List": <ProductList />,
@@ -358,14 +352,7 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <main className="flex-1 p-6">
-          {currentComponent ? (
-            <div key={activeItem}>{currentComponent}</div>
-          ) : (
-            <div className="bg-white rounded-lg border border-slate-200 p-6">
-              <h1 className="text-2xl font-bold text-slate-900 mb-4">Dashboard Content</h1>
-              <p className="text-slate-600">Select a menu item to view content...</p>
-            </div>
-          )}
+          <div key={activeItem}>{currentComponent}</div>
         </main>
       </div>
     </div>

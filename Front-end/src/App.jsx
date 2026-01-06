@@ -9,28 +9,17 @@ import PaymentPage from "./pages/PaymentPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import ProductGalleryPage from "./pages/ProductGalleryPage";
 import TrackOrderPage from "./pages/TrackOrderPage";
-<<<<<<< HEAD
 import OrdersPage from "./pages/OrdersPage";;
-=======
-import OrdersPage from "./pages/OrdersPage";
-
-import CategoryExplorer from "./components/CategoryExplorer";
-
-
->>>>>>> 13fcbe1a5025c6bc67f50d8a060d87d4eff359ac
 import AdminDashboard from "./pages/admin/dashboard";
 import CategoryPage from "./pages/CategoryPage";
 import Tranding from "./pages/Tranding";
 import AdminOrders from "./pages/admin/Orders";
 
-<<<<<<< HEAD
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
 
-=======
->>>>>>> 13fcbe1a5025c6bc67f50d8a060d87d4eff359ac
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -49,7 +38,7 @@ function AppContent() {
           <Route path="/category" element={<CategoryPage />} />
           <Route path="/tranding" element={<Tranding />} />
 
-          <Route path="/category-explorer" element={<CategoryExplorer />} />
+          <Route path="/category-explorer" element={<CategoryPage />} />
 
           {/* Cart */}
           <Route path="/cart" element={<CartPage />} />

@@ -29,19 +29,6 @@ const MasterCategory = () => {
     try {
       setLoading(true);
       setError(null);
-<<<<<<< HEAD
-      const response = await fetch("/api/master-categories");
-      if (!response.ok) {
-        // If API fails, use mock data as fallback
-        const mockCategories = [
-          { master_category_id: 1, name: "Electronics", slug: "electronics", description: "Electronic devices and accessories", is_active: true, image_url: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=80" },
-          { master_category_id: 2, name: "Clothing", slug: "clothing", description: "Fashion and apparel", is_active: true, image_url: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=80" },
-          { master_category_id: 3, name: "Home & Garden", slug: "home-garden", description: "Home improvement and garden supplies", is_active: false, image_url: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=80" }
-        ];
-        setCategories(mockCategories);
-        setLoading(false);
-        return;
-=======
       
       console.log('Fetching from:', API_BASE_URL);
       const response = await fetch(API_BASE_URL, {
@@ -57,22 +44,9 @@ const MasterCategory = () => {
         const errorText = await response.text();
         console.error('Server error response:', errorText);
         throw new Error(`Server responded with ${response.status}: ${errorText}`);
->>>>>>> 8dbbadadfd029fc9dc63ec643c89cea8a32d2505
       }
       
       const data = await response.json();
-<<<<<<< HEAD
-      setCategories(data);
-    } catch (error) {
-      // Fallback to mock data if API fails
-      const mockCategories = [
-        { master_category_id: 1, name: "Electronics", slug: "electronics", description: "Electronic devices and accessories", is_active: true, image_url: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=80" },
-        { master_category_id: 2, name: "Clothing", slug: "clothing", description: "Fashion and apparel", is_active: true, image_url: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=80" },
-        { master_category_id: 3, name: "Home & Garden", slug: "home-garden", description: "Home improvement and garden supplies", is_active: false, image_url: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=80" }
-      ];
-      setCategories(mockCategories);
-      console.error("Error fetching categories:", error);
-=======
       console.log('Received data:', data);
       
       // Handle different response structures
@@ -93,7 +67,6 @@ const MasterCategory = () => {
     } catch (error) {
       console.error('Fetch error details:', error);
       setError(`Failed to load categories: ${error.message}`);
->>>>>>> 8dbbadadfd029fc9dc63ec643c89cea8a32d2505
     } finally {
       setLoading(false);
     }
@@ -108,11 +81,7 @@ const MasterCategory = () => {
       });
       
       if (response.ok) {
-<<<<<<< HEAD
-        setSuccess("Category added successfully!");
-=======
         setSuccess('Category added successfully!');
->>>>>>> 8dbbadadfd029fc9dc63ec643c89cea8a32d2505
         fetchCategories();
         setIsModalOpen(false);
         setTimeout(() => setSuccess(null), 3000);
@@ -138,20 +107,6 @@ const MasterCategory = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
       try {
-<<<<<<< HEAD
-        const response = await fetch(`/api/master-categories/${id}`, {
-          method: "DELETE",
-        });
-
-        if (response.ok) {
-          setSuccess("Category deleted successfully!");
-          fetchCategories();
-          setTimeout(() => setSuccess(null), 3000);
-        }
-      } catch (error) {
-        setError(`Delete failed: ${error.message}`);
-        console.error("Error deleting category:", error);
-=======
         console.log('Deleting master category with ID:', id);
         await deleteMasterCategory(id);
         setSuccess('Deleted successfully');
@@ -160,7 +115,6 @@ const MasterCategory = () => {
       } catch (error) {
         console.error('Delete error:', error);
         setError(`Delete failed: ${error.message || error.error || 'Unknown error'}`);
->>>>>>> 8dbbadadfd029fc9dc63ec643c89cea8a32d2505
       }
     }
   };
