@@ -1,31 +1,31 @@
 import React, { useState, useRef } from 'react';
 import { X, Save, Upload, Check, AlertCircle, ChevronDown, Layers } from 'lucide-react';
 
-const SubCategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [], categories = [] }) => {
+const SubCategoryAdd = ({ isOpen, onClose, onSave, categories = [], masterCategories = [] }) => {
   const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
-    masterCategoryId: '',
-    categoryId: '',
-    status: 'Active',
+    master_category_id: '',
+    category_id: '',
+    is_active: true,
     description: '',
-    image: null,
+    imageFile: null,
     imagePreview: ''
   });
 
-  if (!isOpen) return null;
+  // Filter categories based on selected master category
+  const filteredCategories = formData.master_category_id 
+    ? categories.filter(cat => cat.master_category_id === parseInt(formData.master_category_id))
+    : [];
 
-  // Filter categories based on selected Master Category
-  const filteredCategories = categories.filter(
-    (cat) => cat.masterId === parseInt(formData.masterCategoryId)
-  );
+  if (!isOpen) return null;
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setFormData({
         ...formData,
-        image: file,
+        imageFile: file,
         imagePreview: URL.createObjectURL(file)
       });
     }
@@ -33,12 +33,28 @@ const SubCategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [], catego
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.masterCategoryId || !formData.categoryId) {
-      alert("Please complete all required selections");
+    if (!formData.name || !formData.category_id) {
+      alert("Please complete all required fields");
       return;
     }
-    onSave(formData);
-    onClose();
+    
+    const submitData = {
+      ...formData,
+      slug: formData.name.toLowerCase().replace(/\s+/g, '-')
+    };
+    
+    onSave(submitData);
+    
+    // Reset form
+    setFormData({
+      name: '',
+      master_category_id: '',
+      category_id: '',
+      is_active: true,
+      description: '',
+      imageFile: null,
+      imagePreview: ''
+    });
   };
 
   return (
@@ -87,40 +103,44 @@ const SubCategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [], catego
             {/* 2. Select Master Category */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                Step 1: Select Master Category
+                Select Master Category *
               </label>
               <div className="relative">
                 <select
                   required
-                  value={formData.masterCategoryId}
-                  onChange={(e) => setFormData({...formData, masterCategoryId: e.target.value, categoryId: ''})}
+                  value={formData.master_category_id}
+                  onChange={(e) => setFormData({...formData, master_category_id: e.target.value, category_id: ''})}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium appearance-none cursor-pointer"
                 >
                   <option value="">Choose Master Category</option>
-                  {masterCategories.map((m) => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
+                  {masterCategories.map((master) => (
+                    <option key={master.master_category_id} value={master.master_category_id}>
+                      {master.name}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
               </div>
             </div>
 
-            {/* 3. Select Category (Dependent on Master) */}
-            <div className={`space-y-2 transition-all duration-300 ${!formData.masterCategoryId ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+            {/* 3. Select Category */}
+            <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-                Step 2: Select Category
+                Select Category *
               </label>
               <div className="relative">
                 <select
                   required
-                  disabled={!formData.masterCategoryId}
-                  value={formData.categoryId}
-                  onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium appearance-none cursor-pointer"
+                  value={formData.category_id}
+                  onChange={(e) => setFormData({...formData, category_id: e.target.value})}
+                  disabled={!formData.master_category_id}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="">{formData.masterCategoryId ? "Choose Category" : "Select Master first"}</option>
+                  <option value="">Choose Category</option>
                   {filteredCategories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.category_id} value={c.category_id}>
+                      {c.name}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
@@ -135,18 +155,18 @@ const SubCategoryAdd = ({ isOpen, onClose, onSave, masterCategories = [], catego
               <div className="flex p-1 bg-slate-100 rounded-2xl w-full">
                 <button
                   type="button"
-                  onClick={() => setFormData({...formData, status: 'Active'})}
+                  onClick={() => setFormData({...formData, is_active: true})}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                    formData.status === 'Active' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'
+                    formData.is_active ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'
                   }`}
                 >
                   <Check size={16} /> Active
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData({...formData, status: 'Inactive'})}
+                  onClick={() => setFormData({...formData, is_active: false})}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                    formData.status === 'Inactive' ? 'bg-white shadow-sm text-slate-500' : 'text-slate-400'
+                    !formData.is_active ? 'bg-white shadow-sm text-slate-500' : 'text-slate-400'
                   }`}
                 >
                   <AlertCircle size={16} /> Inactive

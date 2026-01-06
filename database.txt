@@ -1,0 +1,338 @@
+-- =====================================================
+-- DATABASE
+-- =====================================================
+
+CREATE DATABASE "NovaWear_db";
+
+-- =====================================================
+-- USERS
+-- =====================================================
+
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    full_name VARCHAR(120) NOT NULL,
+    email VARCHAR(120) UNIQUE,
+    phone VARCHAR(15) UNIQUE,
+    password_hash TEXT NOT NULL,
+    is_email_verified BOOLEAN DEFAULT FALSE,
+    is_phone_verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_addresses (
+    address_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    address_line1 TEXT NOT NULL,
+    address_line2 TEXT,
+    city VARCHAR(50),
+    state VARCHAR(50),
+    pincode VARCHAR(10),
+    country VARCHAR(50) DEFAULT 'India',
+    is_default BOOLEAN DEFAULT FALSE
+);
+
+-- =====================================================
+-- ROLES & ADMIN
+-- =====================================================
+
+CREATE TABLE roles (
+    role_id SERIAL PRIMARY KEY,
+    role_name VARCHAR(30) UNIQUE NOT NULL
+);
+
+CREATE TABLE user_roles (
+    user_id INT REFERENCES users(user_id),
+    role_id INT REFERENCES roles(role_id),
+    PRIMARY KEY (user_id, role_id)
+);
+
+-- =====================================================
+-- BRANDS
+-- =====================================================
+
+CREATE TABLE brands (
+    brand_id SERIAL PRIMARY KEY,
+    brand_name VARCHAR(100) UNIQUE NOT NULL,
+    brand_slug VARCHAR(120) UNIQUE,
+    description TEXT,
+    logo_url TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- CATEGORY SYSTEM
+-- Master → Category → Sub Category → Type
+-- =====================================================
+
+CREATE TABLE master_categories (
+    master_category_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    slug VARCHAR(120) UNIQUE,
+    image_url TEXT,
+    icon_url TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE categories (
+    category_id SERIAL PRIMARY KEY,
+    master_category_id INT NOT NULL
+        REFERENCES master_categories(master_category_id)
+        ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    slug VARCHAR(120) UNIQUE,
+    description TEXT,
+    image_url TEXT,
+    icon_url TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE sub_categories (
+    sub_category_id SERIAL PRIMARY KEY,
+    category_id INT NOT NULL
+        REFERENCES categories(category_id)
+        ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    slug VARCHAR(120) UNIQUE,
+    description TEXT,
+    image_url TEXT,
+    icon_url TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TYPE = Polo / Round Neck / V-Neck
+CREATE TABLE product_types (
+    type_id SERIAL PRIMARY KEY,
+    sub_category_id INT NOT NULL
+        REFERENCES sub_categories(sub_category_id)
+        ON DELETE CASCADE,
+    type_name VARCHAR(100) NOT NULL,
+    slug VARCHAR(120) UNIQUE,
+    image_url TEXT,
+    icon_url TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- PRODUCTS (BRAND + SKU MANDATORY)
+-- =====================================================
+
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+
+    brand_id INT NOT NULL
+        REFERENCES brands(brand_id)
+        ON DELETE RESTRICT,
+
+    sku VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+
+    price NUMERIC(10,2) NOT NULL,
+    discount_price NUMERIC(10,2),
+
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Product → Type mapping
+CREATE TABLE product_type_mapping (
+    product_id INT REFERENCES products(product_id) ON DELETE CASCADE,
+    type_id INT REFERENCES product_types(type_id) ON DELETE CASCADE,
+    PRIMARY KEY (product_id, type_id)
+);
+
+-- =====================================================
+-- COLOR MASTER
+-- =====================================================
+
+CREATE TABLE colors (
+    color_id SERIAL PRIMARY KEY,
+    color_name VARCHAR(50) UNIQUE NOT NULL,
+    hex_code VARCHAR(7),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- PRODUCT VARIANTS (SIZE + COLOR)
+-- =====================================================
+
+CREATE TABLE product_variants (
+    variant_id SERIAL PRIMARY KEY,
+
+    product_id INT NOT NULL
+        REFERENCES products(product_id)
+        ON DELETE CASCADE,
+
+    size VARCHAR(10) NOT NULL,
+
+    color_id INT NOT NULL
+        REFERENCES colors(color_id),
+
+    variant_sku VARCHAR(80) NOT NULL UNIQUE,
+
+    CONSTRAINT unique_product_size_color
+        UNIQUE (product_id, size, color_id)
+);
+
+-- =====================================================
+-- INVENTORY
+-- =====================================================
+
+CREATE TABLE inventory (
+    inventory_id SERIAL PRIMARY KEY,
+    variant_id INT NOT NULL REFERENCES product_variants(variant_id) ON DELETE CASCADE,
+    stock_quantity INT DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE inventory_logs (
+    log_id SERIAL PRIMARY KEY,
+    variant_id INT REFERENCES product_variants(variant_id),
+    change_qty INT,
+    reason VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- PRODUCT IMAGES
+-- =====================================================
+
+CREATE TABLE product_images (
+    image_id SERIAL PRIMARY KEY,
+    product_id INT REFERENCES products(product_id) ON DELETE CASCADE,
+    image_url TEXT NOT NULL,
+    is_primary BOOLEAN DEFAULT FALSE
+);
+
+-- =====================================================
+-- PRODUCT BADGES
+-- (Top Deals / Featured / Best Selling)
+-- =====================================================
+
+CREATE TABLE product_badges (
+    badge_id SERIAL PRIMARY KEY,
+    badge_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE product_badge_mapping (
+    product_id INT REFERENCES products(product_id) ON DELETE CASCADE,
+    badge_id INT REFERENCES product_badges(badge_id) ON DELETE CASCADE,
+    PRIMARY KEY (product_id, badge_id)
+);
+
+-- Default badges
+INSERT INTO product_badges (badge_name, description)
+VALUES
+('Top Deals', 'High discount or promotional products'),
+('Featured', 'Highlighted products on homepage'),
+('Best Selling', 'Most sold products');
+
+-- =====================================================
+-- CART
+-- =====================================================
+
+CREATE TABLE cart (
+    cart_id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE cart_items (
+    cart_item_id SERIAL PRIMARY KEY,
+    cart_id INT REFERENCES cart(cart_id) ON DELETE CASCADE,
+    variant_id INT REFERENCES product_variants(variant_id),
+    quantity INT NOT NULL
+);
+
+-- =====================================================
+-- ORDERS & PAYMENTS
+-- =====================================================
+
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(user_id),
+    total_amount NUMERIC(10,2),
+    order_status VARCHAR(30) DEFAULT 'Pending',
+    payment_status VARCHAR(30),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE order_items (
+    order_item_id SERIAL PRIMARY KEY,
+    order_id INT REFERENCES orders(order_id) ON DELETE CASCADE,
+    variant_id INT REFERENCES product_variants(variant_id),
+    quantity INT,
+    price NUMERIC(10,2)
+);
+
+CREATE TABLE payments (
+    payment_id SERIAL PRIMARY KEY,
+    order_id INT REFERENCES orders(order_id),
+    payment_method VARCHAR(30),
+    transaction_id VARCHAR(100),
+    amount NUMERIC(10,2),
+    payment_status VARCHAR(30),
+    paid_at TIMESTAMP
+);
+
+-- =====================================================
+-- SHIPPING & RETURNS
+-- =====================================================
+
+CREATE TABLE shipments (
+    shipment_id SERIAL PRIMARY KEY,
+    order_id INT REFERENCES orders(order_id),
+    courier_name VARCHAR(50),
+    tracking_number VARCHAR(100),
+    shipment_status VARCHAR(30),
+    shipped_at TIMESTAMP,
+    delivered_at TIMESTAMP
+);
+
+CREATE TABLE returns (
+    return_id SERIAL PRIMARY KEY,
+    order_item_id INT REFERENCES order_items(order_item_id),
+    reason TEXT,
+    return_status VARCHAR(30),
+    refund_amount NUMERIC(10,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- REVIEWS & WISHLIST
+-- =====================================================
+
+CREATE TABLE reviews (
+    review_id SERIAL PRIMARY KEY,
+    product_id INT REFERENCES products(product_id),
+    user_id INT REFERENCES users(user_id),
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE wishlist (
+    user_id INT REFERENCES users(user_id),
+    product_id INT REFERENCES products(product_id),
+    PRIMARY KEY (user_id, product_id)
+);
+
+-- =====================================================
+-- ACTIVITY LOGS
+-- =====================================================
+
+CREATE TABLE activity_logs (
+    log_id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(user_id),
+    action TEXT,
+    ip_address VARCHAR(45),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

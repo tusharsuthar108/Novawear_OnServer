@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Save, Upload, Check, AlertCircle } from 'lucide-react';
 
 const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
@@ -12,6 +12,28 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
     is_active: true,
     imagePreview: ''
   });
+
+  // Function to generate clean slug based strictly on name
+  const generateSlug = (text) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '') // Remove special chars
+      .replace(/[\s_-]+/g, '-') // Replace spaces/underscores with -
+      .replace(/^-+|-+$/g, ''); // Trim - from ends
+  };
+
+  // Auto-generate slug when name changes
+  useEffect(() => {
+    if (formData.name) {
+      setFormData(prev => ({
+        ...prev,
+        slug: generateSlug(formData.name)
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, slug: '' }));
+    }
+  }, [formData.name]);
 
   if (!isOpen) return null;
 
@@ -32,7 +54,7 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
     
     const formDataToSend = new FormData();
     formDataToSend.append('name', formData.name);
-    formDataToSend.append('slug', formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'));
+    formDataToSend.append('slug', formData.slug);
     formDataToSend.append('description', formData.description);
     formDataToSend.append('icon_url', formData.icon_url);
     formDataToSend.append('is_active', formData.is_active);
@@ -47,30 +69,20 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal Container */}
       <div className="relative bg-white w-full max-w-lg rounded-[32px] shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
         
-        {/* Fixed Header */}
         <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between shrink-0 bg-white">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Add Master Category</h2>
             <p className="text-slate-500 text-xs mt-0.5">Create a new top-level category</p>
           </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-full transition-all"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 text-slate-400 rounded-full transition-all">
             <X size={20} />
           </button>
         </div>
 
-        {/* Scrollable Form Body */}
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <form id="masterCategoryForm" onSubmit={handleSubmit} className="p-8 space-y-6">
             
@@ -89,17 +101,17 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
               />
             </div>
 
-            {/* 2. Slug */}
+            {/* 2. Slug (Auto-generated, No Refresh Button) */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
-                Slug (URL-friendly name)
+                Slug (Auto-generated)
               </label>
               <input
                 type="text"
+                readOnly
                 value={formData.slug}
-                onChange={(e) => setFormData({...formData, slug: e.target.value})}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none font-medium"
-                placeholder="e.g. electronics (auto-generated if empty)"
+                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl outline-none font-medium text-slate-500 cursor-not-allowed"
+                placeholder="electronics"
               />
             </div>
 
@@ -138,17 +150,10 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
                     <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-slate-400 group-hover:text-indigo-500 transition-colors border border-slate-100">
                       <Upload size={20} />
                     </div>
-                    <p className="text-xs font-bold text-slate-500 mt-3 group-hover:text-slate-700">Click to upload image</p>
-                    <p className="text-[10px] text-slate-400 mt-1">PNG, JPG up to 5MB</p>
+                    <p className="text-xs font-bold text-slate-500 mt-3">Click to upload image</p>
                   </>
                 )}
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={handleImageChange}
-                />
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
               </div>
             </div>
 
@@ -165,6 +170,7 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
                 placeholder="https://example.com/icon.svg"
               />
             </div>
+
             {/* 6. Status Toggle */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em] ml-1">
@@ -191,18 +197,11 @@ const MasterCategoryAdd = ({ isOpen, onClose, onSave }) => {
                 </button>
               </div>
             </div>
-
-            {/* Image Preview - removed as it's now handled in upload section */}
           </form>
         </div>
 
-        {/* Fixed Footer Actions */}
         <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex gap-4 shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-6 py-3.5 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-2xl transition-all border border-slate-200"
-          >
+          <button type="button" onClick={onClose} className="flex-1 px-6 py-3.5 text-slate-500 font-bold text-sm hover:bg-slate-100 rounded-2xl border border-slate-200">
             Cancel
           </button>
           <button

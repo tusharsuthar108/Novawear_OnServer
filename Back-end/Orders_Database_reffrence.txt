@@ -1,0 +1,91 @@
+
+2 files read
+Orders.jsx
+Transactions.jsx
+Based on the Orders component analysis, here are the required database tables and columns:
+
+Required Database Tables & Columns:
+1. ORDERS Table
+orders (
+  order_id VARCHAR PRIMARY KEY,
+  customer_id INTEGER,
+  order_date TIMESTAMP,
+  status VARCHAR,
+  total_amount DECIMAL(10,2),
+  payment_method VARCHAR,
+  tracking_number VARCHAR,
+  estimated_delivery DATE,
+  delivered_date DATE,
+  rating INTEGER,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+)
+
+Copy
+2. CUSTOMERS Table
+customers (
+  customer_id SERIAL PRIMARY KEY,
+  name VARCHAR,
+  email VARCHAR,
+  phone VARCHAR,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+)
+
+Copy
+sql
+3. ORDER_ITEMS Table
+order_items (
+  order_item_id SERIAL PRIMARY KEY,
+  order_id VARCHAR,
+  product_name VARCHAR,
+  size VARCHAR,
+  color VARCHAR,
+  quantity INTEGER,
+  price DECIMAL(10,2),
+  image_url TEXT,
+  FOREIGN KEY (order_id) REFERENCES orders(order_id)
+)
+
+Copy
+sql
+4. ADDRESSES Table
+addresses (
+  address_id SERIAL PRIMARY KEY,
+  order_id VARCHAR,
+  address_type VARCHAR, -- 'shipping' or 'billing'
+  street VARCHAR,
+  city VARCHAR,
+  state VARCHAR,
+  zip VARCHAR,
+  country VARCHAR,
+  FOREIGN KEY (order_id) REFERENCES orders(order_id)
+)
+
+Copy
+sql
+5. TRANSACTIONS Table
+transactions (
+  transaction_id VARCHAR PRIMARY KEY,
+  order_id VARCHAR,
+  payment_method VARCHAR,
+  amount DECIMAL(10,2),
+  transaction_date TIMESTAMP,
+  status VARCHAR, -- 'Paid', 'Pending', 'Declined', 'Cash'
+  customer_name VARCHAR,
+  billing_address TEXT,
+  items_list TEXT,
+  created_at TIMESTAMP,
+  FOREIGN KEY (order_id) REFERENCES orders(order_id)
+)
+
+Copy
+sql
+Key Data Requirements:
+Order Statuses: Processing, In Transit, Delivered, Payment Refund, Order Cancel, Order Shipped, Order Delivering, Pending Review, Pending Payment, In Progress
+
+Payment Methods: Credit Card, UPI Payment, PayPal, MasterCard, Visa, AmericanExpress, Cash
+
+Transaction Statuses: Paid, Pending, Declined, Cash
+
+Order Statistics: Payment Refund (490), Order Cancel (241), Order Shipped (630), Order Delivering (170), Pending Review (210), Pending Payment (608), Delivered (200), In Progress (656)

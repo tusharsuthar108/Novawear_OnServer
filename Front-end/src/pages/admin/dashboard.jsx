@@ -25,11 +25,24 @@ import {
 import MasterCategory from '../../components/admin/MasterCategory';
 import Category from '../../components/admin/Category';
 import SubCategory from '../../components/admin/SubCategory';
-import SubSubCategory from '../../components/admin/SubSubCategory';
+import ProductType from '../../components/admin/ProductType';
 import AdminOrders from './Orders';
 import OrderDetails from '../../components/admin/OrderDetails';
+<<<<<<< HEAD
 import Inventory from '../../components/admin/Inventory';
 import AddProduct from "../../components/admin/AddProduct";
+=======
+import BrandList from '../../components/admin/BrandList';
+import AddBrand from '../../components/admin/AddBrand';
+import PricingPlans from '../../components/admin/PricingPlans';
+import ProductPricing from '../../components/admin/ProductPricing';
+import DiscountsCoupons from '../../components/admin/DiscountsCoupons';
+
+import TaxesFees from '../../components/admin/TaxesFees';
+import Transactions from '../../components/admin/Transactions';
+
+// Placeholder pricing components
+>>>>>>> 13fcbe1a5025c6bc67f50d8a060d87d4eff359ac
 // import BrandList from './BrandList';
 // import AddBrand from './AddBrand';
 // import ProductList from './ProductList';
@@ -58,10 +71,19 @@ const Dashboard = () => {
       "Master Category": <MasterCategory />,
       "Category": <Category />,
       "Sub Category": <SubCategory />,
-      "Sub Sub Category": <SubSubCategory />,
+      "Product Type": <ProductType />,
       "Order List": <AdminOrders />,
       "Order Details": <OrderDetails />,
+<<<<<<< HEAD
       "Inventory": <Inventory />,
+=======
+      "Brand": <BrandList key="brand-list" />,
+      "Pricing Plans": <PricingPlans />,
+      "Product Pricing": <ProductPricing />,
+      "Discounts & Coupons": <DiscountsCoupons />,
+      "Taxes & Fees": <TaxesFees />,
+      "Transactions": <Transactions />,
+>>>>>>> 13fcbe1a5025c6bc67f50d8a060d87d4eff359ac
       // "Brand List": <BrandList />,
       // "Add Brand": <AddBrand />,
       // "Product List": <ProductList />,
@@ -106,13 +128,13 @@ const Dashboard = () => {
       title: "Orders",
       icon: <Truck size={20} />,
       submenu: true,
-      submenuItems: ["Order List", "Order Details"],
+      submenuItems: ["Order List", "Order Details", "Transactions"],
     },
     {
       title: "Category",
       icon: <Box size={20} />,
       submenu: true,
-      submenuItems: ["Master Category", "Category", "Sub Category" , "Sub Sub Category"],
+      submenuItems: ["Master Category", "Category", "Sub Category"],
     },
 
     { title: "Brand", icon: <Bookmark size={20} /> },
@@ -120,9 +142,9 @@ const Dashboard = () => {
       title: "Product",
       icon: <Tag size={20} />,
       submenu: true,
-      submenuItems: ["New Product", "Management"],
+      submenuItems: ["Product Type", "Management"],
     },
-    { title: "Pricing", icon: <CircleDollarSign size={20} /> },
+    { title: "Pricing", icon: <CircleDollarSign size={20} />, submenu: true, submenuItems: ["Pricing Plans", "Product Pricing", "Discounts & Coupons", "Taxes & Fees"] },
   ];
 
   return (
@@ -189,16 +211,18 @@ const Dashboard = () => {
                     // 2️⃣ Set active item
                     setActiveItem(item.title);
 
-                    // 3️⃣ Toggle submenu (open/close) only if sidebar is already open
-                    if (item.submenu) {
+                    // 3️⃣ For non-submenu items, set the component directly
+                    if (!item.submenu) {
+                      setCurrentComponent(getComponent(item.title));
+                      setOpenMenus({}); // close all submenus
+                    } else {
+                      // Toggle submenu (open/close) only if sidebar is already open
                       setOpenMenus(prev => {
                         const isCurrentlyOpen = prev[item.title];
                         return {
                           [item.title]: !isCurrentlyOpen
                         };
                       });
-                    } else {
-                      setOpenMenus({}); // 👈 close all if normal item
                     }
                   }}
                   className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 group
@@ -334,7 +358,9 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <main className="flex-1 p-6">
-          {currentComponent || (
+          {currentComponent ? (
+            <div key={activeItem}>{currentComponent}</div>
+          ) : (
             <div className="bg-white rounded-lg border border-slate-200 p-6">
               <h1 className="text-2xl font-bold text-slate-900 mb-4">Dashboard Content</h1>
               <p className="text-slate-600">Select a menu item to view content...</p>
