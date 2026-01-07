@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, Percent, Calendar, Users, ArrowLeft } from 'lucide-react';
-import { fetchCoupons, createCoupon, deleteCoupon } from '../../api/pricing.api';
+import { fetchCoupons, createCoupon, updateCoupon, deleteCoupon } from '../../api/pricing.api';
 
 const DiscountsCoupons = () => {
   const [coupons, setCoupons] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -41,9 +42,15 @@ const DiscountsCoupons = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createCoupon(formData);
-      setSuccess('Coupon created successfully!');
+      if (editingCoupon) {
+        await updateCoupon(editingCoupon.coupon_id, formData);
+        setSuccess('Coupon updated successfully!');
+      } else {
+        await createCoupon(formData);
+        setSuccess('Coupon created successfully!');
+      }
       setShowAddForm(false);
+      setEditingCoupon(null);
       setFormData({
         coupon_code: '', description: '', discount_type: 'percentage', discount_value: '',
         min_order_amount: '', max_discount_amount: '', start_date: '', end_date: '',
@@ -54,6 +61,23 @@ const DiscountsCoupons = () => {
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleEdit = (coupon) => {
+    setEditingCoupon(coupon);
+    setFormData({
+      coupon_code: coupon.coupon_code,
+      description: coupon.description || '',
+      discount_type: coupon.discount_type,
+      discount_value: coupon.discount_value.toString(),
+      min_order_amount: coupon.min_order_amount ? coupon.min_order_amount.toString() : '',
+      max_discount_amount: coupon.max_discount_amount ? coupon.max_discount_amount.toString() : '',
+      start_date: coupon.start_date ? coupon.start_date.split('T')[0] : '',
+      end_date: coupon.end_date ? coupon.end_date.split('T')[0] : '',
+      usage_limit: coupon.usage_limit ? coupon.usage_limit.toString() : '',
+      is_active: coupon.is_active
+    });
+    setShowAddForm(true);
   };
 
   const handleDelete = async (id) => {
@@ -99,7 +123,7 @@ const DiscountsCoupons = () => {
           </button>
         </div>
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-slate-800 mb-6">Create New Coupon</h2>
+          <h2 className="text-2xl font-bold text-slate-800 mb-6">{editingCoupon ? 'Edit Coupon' : 'Create New Coupon'}</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <input 
@@ -170,8 +194,8 @@ const DiscountsCoupons = () => {
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
             ></textarea>
             <div className="flex gap-4">
-              <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">Create Coupon</button>
-              <button type="button" onClick={() => setShowAddForm(false)} className="bg-slate-100 text-slate-600 px-8 py-3 rounded-xl font-medium hover:bg-slate-200 transition-colors">Cancel</button>
+              <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">{editingCoupon ? 'Update Coupon' : 'Create Coupon'}</button>
+              <button type="button" onClick={() => {setShowAddForm(false); setEditingCoupon(null);}} className="bg-slate-100 text-slate-600 px-8 py-3 rounded-xl font-medium hover:bg-slate-200 transition-colors">Cancel</button>
             </div>
           </form>
         </div>
@@ -233,7 +257,10 @@ const DiscountsCoupons = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50">
+                  <button 
+                    onClick={() => handleEdit(coupon)}
+                    className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50"
+                  >
                     <Edit size={16} />
                   </button>
                   <button 

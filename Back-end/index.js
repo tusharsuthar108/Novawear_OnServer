@@ -250,6 +250,37 @@ try {
   console.log('✅ Pricing routes loaded');
 } catch (error) {
   console.error('❌ Failed to load pricing routes:', error.message);
+  
+  // Add pricing routes directly as fallback
+  const pool = require('./src/config/database');
+  
+  // Plans routes
+  app.get('/api/pricing/plans', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM pricing_plans ORDER BY created_at DESC');
+      res.json({ success: true, data: result.rows });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
+  app.put('/api/pricing/plans/:id', async (req, res) => {
+    try {
+      const { plan_name, description, discount_type, discount_value, is_active } = req.body;
+      const result = await pool.query(
+        'UPDATE pricing_plans SET plan_name = $1, description = $2, discount_type = $3, discount_value = $4, is_active = $5 WHERE plan_id = $6 RETURNING *',
+        [plan_name, description, discount_type, parseFloat(discount_value), is_active ?? true, req.params.id]
+      );
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, error: 'Plan not found' });
+      }
+      res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+  
+  console.log('✅ Pricing routes added directly');
 }
 
 // Add product type routes directly

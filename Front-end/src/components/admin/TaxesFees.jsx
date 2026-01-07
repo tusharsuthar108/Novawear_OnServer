@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Percent, MapPin, DollarSign, Settings, ArrowLeft } from 'lucide-react';
-import { fetchTaxes, createTax, deleteTax, fetchFees, createFee, deleteFee } from '../../api/pricing.api';
+import { fetchTaxes, createTax, updateTax, deleteTax, fetchFees, createFee, updateFee, deleteFee } from '../../api/pricing.api';
 
 const TaxesFees = () => {
   const [taxRules, setTaxRules] = useState([]);
   const [fees, setFees] = useState([]);
   const [showAddTaxForm, setShowAddTaxForm] = useState(false);
   const [showAddFeeForm, setShowAddFeeForm] = useState(false);
+  const [editingTax, setEditingTax] = useState(null);
+  const [editingFee, setEditingFee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -46,9 +48,15 @@ const TaxesFees = () => {
   const handleTaxSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createTax(taxFormData);
-      setSuccess('Tax rule created successfully!');
+      if (editingTax) {
+        await updateTax(editingTax.tax_id, taxFormData);
+        setSuccess('Tax rule updated successfully!');
+      } else {
+        await createTax(taxFormData);
+        setSuccess('Tax rule created successfully!');
+      }
       setShowAddTaxForm(false);
+      setEditingTax(null);
       setTaxFormData({ tax_name: '', tax_type: 'percentage', tax_value: '', is_active: true });
       loadData();
       setTimeout(() => setSuccess(null), 3000);
@@ -60,15 +68,43 @@ const TaxesFees = () => {
   const handleFeeSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createFee(feeFormData);
-      setSuccess('Fee created successfully!');
+      if (editingFee) {
+        await updateFee(editingFee.fee_id, feeFormData);
+        setSuccess('Fee updated successfully!');
+      } else {
+        await createFee(feeFormData);
+        setSuccess('Fee created successfully!');
+      }
       setShowAddFeeForm(false);
+      setEditingFee(null);
       setFeeFormData({ fee_name: '', fee_type: 'flat', fee_value: '', is_active: true });
       loadData();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleTaxEdit = (tax) => {
+    setEditingTax(tax);
+    setTaxFormData({
+      tax_name: tax.tax_name,
+      tax_type: tax.tax_type,
+      tax_value: tax.tax_value.toString(),
+      is_active: tax.is_active
+    });
+    setShowAddTaxForm(true);
+  };
+
+  const handleFeeEdit = (fee) => {
+    setEditingFee(fee);
+    setFeeFormData({
+      fee_name: fee.fee_name,
+      fee_type: fee.fee_type,
+      fee_value: fee.fee_value.toString(),
+      is_active: fee.is_active
+    });
+    setShowAddFeeForm(true);
   };
 
   const handleTaxDelete = async (id) => {
@@ -123,7 +159,7 @@ const TaxesFees = () => {
           </button>
         </div>
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-slate-800 mb-6">Add Tax Rule</h2>
+          <h2 className="text-2xl font-bold text-slate-800 mb-6">{editingTax ? 'Edit Tax Rule' : 'Add Tax Rule'}</h2>
           <form onSubmit={handleTaxSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <input 
@@ -152,8 +188,8 @@ const TaxesFees = () => {
               />
             </div>
             <div className="flex gap-4">
-              <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">Save Tax Rule</button>
-              <button type="button" onClick={() => setShowAddTaxForm(false)} className="bg-slate-100 text-slate-600 px-8 py-3 rounded-xl font-medium hover:bg-slate-200 transition-colors">Cancel</button>
+              <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">{editingTax ? 'Update Tax Rule' : 'Save Tax Rule'}</button>
+              <button type="button" onClick={() => {setShowAddTaxForm(false); setEditingTax(null);}} className="bg-slate-100 text-slate-600 px-8 py-3 rounded-xl font-medium hover:bg-slate-200 transition-colors">Cancel</button>
             </div>
           </form>
         </div>
@@ -179,7 +215,7 @@ const TaxesFees = () => {
           </button>
         </div>
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-slate-800 mb-6">Add Fee</h2>
+          <h2 className="text-2xl font-bold text-slate-800 mb-6">{editingFee ? 'Edit Fee' : 'Add Fee'}</h2>
           <form onSubmit={handleFeeSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <input 
@@ -208,8 +244,8 @@ const TaxesFees = () => {
               />
             </div>
             <div className="flex gap-4">
-              <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">Save Fee</button>
-              <button type="button" onClick={() => setShowAddFeeForm(false)} className="bg-slate-100 text-slate-600 px-8 py-3 rounded-xl font-medium hover:bg-slate-200 transition-colors">Cancel</button>
+              <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">{editingFee ? 'Update Fee' : 'Save Fee'}</button>
+              <button type="button" onClick={() => {setShowAddFeeForm(false); setEditingFee(null);}} className="bg-slate-100 text-slate-600 px-8 py-3 rounded-xl font-medium hover:bg-slate-200 transition-colors">Cancel</button>
             </div>
           </form>
         </div>
@@ -278,7 +314,10 @@ const TaxesFees = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50">
+                  <button 
+                    onClick={() => handleTaxEdit(rule)}
+                    className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50"
+                  >
                     <Edit size={16} />
                   </button>
                   <button 
@@ -368,7 +407,10 @@ const TaxesFees = () => {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50">
+                      <button 
+                        onClick={() => handleFeeEdit(fee)}
+                        className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50"
+                      >
                         <Edit size={16} />
                       </button>
                       <button 
