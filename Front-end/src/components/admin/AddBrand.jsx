@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import { Upload, Save, X, Image as ImageIcon } from 'lucide-react';
+import { brandAPI } from '../../api/brand.api';
 
-const AddBrand = () => {
+const AddBrand = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    brand_name: '',
     description: '',
-    website: '',
-    status: 'Active'
+    is_active: true
   });
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -31,19 +32,38 @@ const AddBrand = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Brand Data:', formData);
-    console.log('Selected Image:', selectedImage);
-    // Handle form submission here
+    setLoading(true);
+
+    try {
+      const submitData = new FormData();
+      submitData.append('brand_name', formData.brand_name);
+      submitData.append('description', formData.description);
+      submitData.append('is_active', formData.is_active);
+      
+      if (selectedImage) {
+        submitData.append('logo', selectedImage);
+      }
+
+      await brandAPI.createBrand(submitData);
+      
+      handleReset();
+      if (onSuccess) onSuccess();
+      alert('Brand created successfully!');
+    } catch (error) {
+      console.error('Error creating brand:', error);
+      alert('Error creating brand. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleReset = () => {
     setFormData({
-      name: '',
+      brand_name: '',
       description: '',
-      website: '',
-      status: 'Active'
+      is_active: true
     });
     setSelectedImage(null);
     setImagePreview(null);
@@ -71,8 +91,8 @@ const AddBrand = () => {
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="brand_name"
+                  value={formData.brand_name}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="Enter brand name"
@@ -96,31 +116,20 @@ const AddBrand = () => {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Website URL
-                </label>
-                <input
-                  type="url"
-                  name="website"
-                  value={formData.website}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="https://example.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Status
                 </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="is_active"
+                      checked={formData.is_active}
+                      onChange={handleInputChange}
+                      className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                    />
+                    <span className="text-sm text-slate-600">Active</span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -180,10 +189,11 @@ const AddBrand = () => {
           <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-200">
             <button
               type="submit"
-              className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg shadow-indigo-200"
+              disabled={loading}
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} />
-              Save Brand
+              {loading ? 'Saving...' : 'Save Brand'}
             </button>
             <button
               type="button"

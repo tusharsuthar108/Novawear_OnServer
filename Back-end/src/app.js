@@ -3,6 +3,8 @@ const cors = require("cors");
 const path = require("path");
 
 const masterCategoryRoutes = require("./routes/masterCategory.routes");
+const brandRoutes = require("./routes/brand.routes");
+const userRoutes = require("./routes/user.routes");
 
 const app = express();
 
@@ -13,6 +15,8 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use("/api/master-categories", masterCategoryRoutes);
+app.use("/api/brands", brandRoutes);
+app.use("/api/users", userRoutes);
 
 const categoryRoutes = require("./routes/category.routes");
 app.use("/api/categories", categoryRoutes);

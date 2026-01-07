@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { categories } from "../data/database";
 import { useCart } from "../context/CartContext";
-import { Search, ShoppingBag, User, ChevronDown } from "lucide-react";
+import { Search, ShoppingBag, User, ChevronDown, LogOut, Settings, Package } from "lucide-react";
 import Logo from "../assets/logo.png"; // or .svg, .jpg, etc.
 
 export default function Navbar() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState(null);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState(null);
   const { getTotalItems } = useCart();
 
   const newArrivals = categories.find((c) => c.slug === "new-arrivals");
@@ -99,6 +101,31 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.user-dropdown')) {
+        setShowUserDropdown(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('rememberedEmail');
+    localStorage.removeItem('rememberedPassword');
+    setUser(null);
+    navigate('/');
+  };
 
   const renderMegaMenu = (cat) => (
     <div
@@ -261,7 +288,74 @@ export default function Navbar() {
               </span>
             )}
           </div>
-          <User className="w-5 h-5 cursor-pointer hover:text-indigo-600" />
+          {user ? (
+            <div className="relative user-dropdown">
+              <button
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                className="flex items-center space-x-2 hover:text-indigo-600 transition-colors"
+              >
+                <User className="w-5 h-5" />
+                <span className="text-sm font-medium hidden md:block">{user.full_name?.split(' ')[0]}</span>
+                <ChevronDown className="w-3 h-3" />
+              </button>
+              {showUserDropdown && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900">{user.full_name}</p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                  </div>
+                  <Link
+                    to="/orders"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+                    onClick={() => setShowUserDropdown(false)}
+                  >
+                    <Package className="w-4 h-4 mr-3" />
+                    My Orders
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+                    onClick={() => setShowUserDropdown(false)}
+                  >
+                    <Settings className="w-4 h-4 mr-3" />
+                    Profile Settings
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
+                  >
+                    <LogOut className="w-4 h-4 mr-3" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="relative user-dropdown">
+              <User 
+                className="w-5 h-5 cursor-pointer hover:text-indigo-600" 
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+              />
+              {showUserDropdown && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <Link 
+                    to="/login" 
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+                    onClick={() => setShowUserDropdown(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link 
+                    to="/signup" 
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 transition-colors border-t border-gray-100"
+                    onClick={() => setShowUserDropdown(false)}
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>
