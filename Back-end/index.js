@@ -243,6 +243,15 @@ try {
   console.log('✅ SubCategory routes added directly');
 }
 
+// Import and use pricing routes
+try {
+  const pricingRoutes = require('./src/routes/pricing.routes');
+  app.use('/api/pricing', pricingRoutes);
+  console.log('✅ Pricing routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load pricing routes:', error.message);
+}
+
 // Add product type routes directly
 try {
   app.get('/api/product-types', async (req, res) => {
@@ -316,4 +325,5 @@ app.listen(PORT, () => {
   console.log(`📂 Categories API: http://localhost:${PORT}/api/categories`);
   console.log(`📂 SubCategories API: http://localhost:${PORT}/api/subcategories`);
   console.log(`📂 Product Types API: http://localhost:${PORT}/api/product-types`);
+  console.log(`💰 Pricing API: http://localhost:${PORT}/api/pricing`);
 });

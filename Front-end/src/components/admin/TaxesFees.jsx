@@ -1,23 +1,118 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Percent, MapPin, DollarSign, Settings, ArrowLeft } from 'lucide-react';
+import { fetchTaxes, createTax, deleteTax, fetchFees, createFee, deleteFee } from '../../api/pricing.api';
 
 const TaxesFees = () => {
-  const [taxRules, setTaxRules] = useState([
-    { id: 1, type: "GST", name: "Standard GST", rate: 18, region: "India", status: "Active" },
-    { id: 2, type: "GST", name: "Reduced GST", rate: 5, region: "India", status: "Active" },
-    { id: 3, type: "Service Tax", name: "Digital Services", rate: 12, region: "Global", status: "Active" }
-  ]);
-  const [fees, setFees] = useState([
-    { id: 1, name: "Platform Fee", type: "Fixed", amount: 2.99, description: "Platform processing fee", status: "Active" },
-    { id: 2, name: "Convenience Charge", type: "Percentage", amount: 2.5, description: "Payment processing convenience", status: "Active" },
-    { id: 3, name: "Shipping Charge", type: "Fixed", amount: 5.99, description: "Standard shipping fee", status: "Active" }
-  ]);
+  const [taxRules, setTaxRules] = useState([]);
+  const [fees, setFees] = useState([]);
   const [showAddTaxForm, setShowAddTaxForm] = useState(false);
   const [showAddFeeForm, setShowAddFeeForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [taxFormData, setTaxFormData] = useState({
+    tax_name: '',
+    tax_type: 'percentage',
+    tax_value: '',
+    is_active: true
+  });
+  const [feeFormData, setFeeFormData] = useState({
+    fee_name: '',
+    fee_type: 'flat',
+    fee_value: '',
+    is_active: true
+  });
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [taxResponse, feeResponse] = await Promise.all([
+        fetchTaxes(),
+        fetchFees()
+      ]);
+      setTaxRules(taxResponse.data || []);
+      setFees(feeResponse.data || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTaxSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createTax(taxFormData);
+      setSuccess('Tax rule created successfully!');
+      setShowAddTaxForm(false);
+      setTaxFormData({ tax_name: '', tax_type: 'percentage', tax_value: '', is_active: true });
+      loadData();
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleFeeSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createFee(feeFormData);
+      setSuccess('Fee created successfully!');
+      setShowAddFeeForm(false);
+      setFeeFormData({ fee_name: '', fee_type: 'flat', fee_value: '', is_active: true });
+      loadData();
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleTaxDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this tax rule?')) {
+      try {
+        await deleteTax(id);
+        setSuccess('Tax rule deleted successfully!');
+        loadData();
+        setTimeout(() => setSuccess(null), 3000);
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+  };
+
+  const handleFeeDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this fee?')) {
+      try {
+        await deleteFee(id);
+        setSuccess('Fee deleted successfully!');
+        loadData();
+        setTimeout(() => setSuccess(null), 3000);
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (showAddTaxForm) {
     return (
       <div className="space-y-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+            {error}
+          </div>
+        )}
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setShowAddTaxForm(false)}
@@ -29,15 +124,32 @@ const TaxesFees = () => {
         </div>
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-8">
           <h2 className="text-2xl font-bold text-slate-800 mb-6">Add Tax Rule</h2>
-          <form className="space-y-6">
+          <form onSubmit={handleTaxSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <input type="text" placeholder="Tax Name" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option>GST</option>
-                <option>Service Tax</option>
+              <input 
+                type="text" 
+                placeholder="Tax Name" 
+                value={taxFormData.tax_name}
+                onChange={(e) => setTaxFormData({...taxFormData, tax_name: e.target.value})}
+                required
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              />
+              <select 
+                value={taxFormData.tax_type}
+                onChange={(e) => setTaxFormData({...taxFormData, tax_type: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="percentage">Percentage</option>
+                <option value="flat">Fixed Amount</option>
               </select>
-              <input type="number" placeholder="Tax Rate (%)" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <input type="text" placeholder="Region" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input 
+                type="number" 
+                placeholder="Tax Value" 
+                value={taxFormData.tax_value}
+                onChange={(e) => setTaxFormData({...taxFormData, tax_value: e.target.value})}
+                required
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              />
             </div>
             <div className="flex gap-4">
               <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">Save Tax Rule</button>
@@ -52,6 +164,11 @@ const TaxesFees = () => {
   if (showAddFeeForm) {
     return (
       <div className="space-y-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+            {error}
+          </div>
+        )}
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setShowAddFeeForm(false)}
@@ -63,15 +180,32 @@ const TaxesFees = () => {
         </div>
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-8">
           <h2 className="text-2xl font-bold text-slate-800 mb-6">Add Fee</h2>
-          <form className="space-y-6">
+          <form onSubmit={handleFeeSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <input type="text" placeholder="Fee Name" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option>Fixed</option>
-                <option>Percentage</option>
+              <input 
+                type="text" 
+                placeholder="Fee Name" 
+                value={feeFormData.fee_name}
+                onChange={(e) => setFeeFormData({...feeFormData, fee_name: e.target.value})}
+                required
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              />
+              <select 
+                value={feeFormData.fee_type}
+                onChange={(e) => setFeeFormData({...feeFormData, fee_type: e.target.value})}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="flat">Fixed Amount</option>
+                <option value="percentage">Percentage</option>
               </select>
-              <input type="number" placeholder="Amount" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <input type="text" placeholder="Description" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input 
+                type="number" 
+                placeholder="Fee Value" 
+                value={feeFormData.fee_value}
+                onChange={(e) => setFeeFormData({...feeFormData, fee_value: e.target.value})}
+                required
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              />
             </div>
             <div className="flex gap-4">
               <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">Save Fee</button>
@@ -85,6 +219,16 @@ const TaxesFees = () => {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl">
+          {success}
+        </div>
+      )}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Taxes & Fees</h2>
@@ -116,30 +260,31 @@ const TaxesFees = () => {
           </div>
           <div>
             <h3 className="text-xl font-bold text-slate-800">Tax Rules</h3>
-            <p className="text-slate-500 text-sm">GST rates, service tax, and region-based rules</p>
+            <p className="text-slate-500 text-sm">Tax rates and regulations</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {taxRules.map((rule) => (
-            <div key={rule.id} className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-xl p-6 hover:shadow-lg transition-all">
+            <div key={rule.tax_id} className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-xl p-6 hover:shadow-lg transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold ${
-                    rule.type === 'GST' ? 'bg-emerald-500' : 'bg-blue-500'
-                  }`}>
-                    {rule.type === 'GST' ? 'G' : 'S'}
+                  <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                    T
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800">{rule.name}</h4>
-                    <span className="text-sm text-slate-500">{rule.type}</span>
+                    <h4 className="font-bold text-slate-800">{rule.tax_name}</h4>
+                    <span className="text-sm text-slate-500">{rule.tax_type}</span>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50">
                     <Edit size={16} />
                   </button>
-                  <button className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50">
+                  <button 
+                    onClick={() => handleTaxDelete(rule.tax_id)}
+                    className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -147,20 +292,18 @@ const TaxesFees = () => {
 
               <div className="space-y-3 mb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Tax Rate</span>
-                  <span className="font-bold text-slate-800 text-lg">{rule.rate}%</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin size={16} className="text-slate-400" />
-                  <span className="text-sm text-slate-600">{rule.region}</span>
+                  <span className="text-sm text-slate-600">Tax Value</span>
+                  <span className="font-bold text-slate-800 text-lg">
+                    {rule.tax_value}{rule.tax_type === 'percentage' ? '%' : '$'}
+                  </span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  rule.status === 'Active' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                  rule.is_active ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
                 }`}>
-                  {rule.status}
+                  {rule.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>
             </div>
@@ -187,44 +330,40 @@ const TaxesFees = () => {
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Fee Name</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Type</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Amount</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Description</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
                 <th className="px-6 py-4 text-right text-sm font-semibold text-slate-700">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {fees.map((fee) => (
-                <tr key={fee.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={fee.fee_id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
                         <Settings size={16} className="text-slate-500" />
                       </div>
-                      <span className="font-semibold text-slate-800">{fee.name}</span>
+                      <span className="font-semibold text-slate-800">{fee.fee_name}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      fee.type === 'Fixed' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'
+                      fee.fee_type === 'flat' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'
                     }`}>
-                      {fee.type}
+                      {fee.fee_type === 'flat' ? 'Fixed' : 'Percentage'}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
-                      {fee.type === 'Fixed' ? '$' : ''}
-                      <span className="font-semibold text-slate-800">{fee.amount}</span>
-                      {fee.type === 'Percentage' ? '%' : ''}
+                      {fee.fee_type === 'flat' ? '$' : ''}
+                      <span className="font-semibold text-slate-800">{fee.fee_value}</span>
+                      {fee.fee_type === 'percentage' ? '%' : ''}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-slate-600 text-sm">{fee.description}</span>
-                  </td>
-                  <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      fee.status === 'Active' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                      fee.is_active ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
                     }`}>
-                      {fee.status}
+                      {fee.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -232,7 +371,10 @@ const TaxesFees = () => {
                       <button className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50">
                         <Edit size={16} />
                       </button>
-                      <button className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50">
+                      <button 
+                        onClick={() => handleFeeDelete(fee.fee_id)}
+                        className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
