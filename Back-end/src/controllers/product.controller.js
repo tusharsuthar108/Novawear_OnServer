@@ -1,0 +1,132 @@
+const pool = require('../config/database');
+
+exports.createProduct = async (req, res) => {
+  let client;
+
+  try {
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    const { title, brand, sku, description, master, category, subCategory, type } = req.body;
+
+    // Parse variants
+    let variants;
+    try {
+      variants = typeof req.body.variants === 'string' ? JSON.parse(req.body.variants) : req.body.variants;
+    } catch (e) {
+      throw new Error('Invalid variants JSON');
+    }
+
+    // Map uploaded files to variants and prepare image paths
+    // Multer puts files in req.files
+    let fileIndex = 0;
+    variants = variants.map((variant) => {
+      if (variant.hasImage && req.files && req.files[fileIndex]) {
+        variant.imageUrl = `/uploads/products/${req.files[fileIndex].filename}`; // Use relative path for serving
+        fileIndex++;
+      }
+      return variant;
+    });
+
+    console.log('--- Creating Product ---');
+    console.log('Title:', title);
+
+    // 1. Insert into products table (No PRICE here anymore)
+    const productQuery = `
+      INSERT INTO products (brand_id, sku, name, description, is_active)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING product_id
+    `;
+
+    const productResult = await client.query(productQuery, [
+      brand,
+      sku,
+      title,
+      description,
+      true
+    ]);
+
+    const productId = productResult.rows[0].product_id;
+    console.log('Created Product ID:', productId);
+
+    // 2. Insert into product_type_mapping
+    if (type) {
+      await client.query(
+        'INSERT INTO product_type_mapping (product_id, type_id) VALUES ($1, $2)',
+        [productId, type]
+      );
+    }
+
+    // 3. Process Variants
+    for (const variant of variants) {
+      const { attributes, stock, salePrice, mrp } = variant;
+      const colorId = attributes.Color; // ID
+      const sizeId = attributes.Size;   // ID
+      const fabricId = attributes.Fabric || null;
+      const patternId = attributes.Pattern || null;
+
+      if (!colorId) throw new Error('Color is required for variant');
+      if (!sizeId) throw new Error('Size is required for variant');
+
+      // Generate variant SKU if not provided
+      // Variant SKU is unique per product+size+color
+      // We'll use master SKU + colorID + sizeID
+      const variantSku = `${sku}-C${colorId}-S${sizeId}`.toUpperCase();
+
+      // Insert into product_variants (Price is HERE now)
+      // "price" column usually refers to the SELLING price. 
+      // "discount_price" is optional.
+      const variantQuery = `
+        INSERT INTO product_variants (product_id, size_id, color_id, fabric_id, pattern_id, variant_sku, price, discount_price)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING variant_id
+      `;
+
+      // Use mrp as 'price' (regular price) and salePrice as 'discount_price'
+      const price = mrp || 0;
+      const discountPrice = salePrice && salePrice < price ? salePrice : null;
+
+      const variantResult = await client.query(variantQuery, [
+        productId,
+        sizeId,
+        colorId,
+        fabricId,
+        patternId,
+        variantSku,
+        price,
+        discountPrice
+      ]);
+
+      const variantId = variantResult.rows[0].variant_id;
+
+      // 4. Insert into Inventory
+      await client.query(
+        'INSERT INTO inventory (variant_id, stock_quantity) VALUES ($1, $2)',
+        [variantId, stock || 0]
+      );
+
+      // 5. Insert Images (LINKED TO VARIANT ID now)
+      if (variant.imageUrl) {
+        await client.query(
+          'INSERT INTO product_images (variant_id, image_url, is_primary) VALUES ($1, $2, $3)',
+          [variantId, variant.imageUrl, false]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      success: true,
+      message: "Product created successfully",
+      productId: productId
+    });
+
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Create Product Error:', error);
+    res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+  } finally {
+    if (client) client.release();
+  }
+};

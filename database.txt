@@ -2,6 +2,7 @@
 -- DATABASE
 -- =====================================================
 
+DROP DATABASE IF EXISTS "NovaWear_db";
 CREATE DATABASE "NovaWear_db";
 
 -- =====================================================
@@ -21,7 +22,7 @@ CREATE TABLE users (
 
 CREATE TABLE user_addresses (
     address_id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     address_line1 TEXT NOT NULL,
     address_line2 TEXT,
     city VARCHAR(50),
@@ -32,7 +33,7 @@ CREATE TABLE user_addresses (
 );
 
 -- =====================================================
--- ROLES & ADMIN
+-- ROLES
 -- =====================================================
 
 CREATE TABLE roles (
@@ -62,7 +63,6 @@ CREATE TABLE brands (
 
 -- =====================================================
 -- CATEGORY SYSTEM
--- Master → Category → Sub Category → Type
 -- =====================================================
 
 CREATE TABLE master_categories (
@@ -77,9 +77,7 @@ CREATE TABLE master_categories (
 
 CREATE TABLE categories (
     category_id SERIAL PRIMARY KEY,
-    master_category_id INT NOT NULL
-        REFERENCES master_categories(master_category_id)
-        ON DELETE CASCADE,
+    master_category_id INT REFERENCES master_categories(master_category_id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(120) UNIQUE,
     description TEXT,
@@ -91,9 +89,7 @@ CREATE TABLE categories (
 
 CREATE TABLE sub_categories (
     sub_category_id SERIAL PRIMARY KEY,
-    category_id INT NOT NULL
-        REFERENCES categories(category_id)
-        ON DELETE CASCADE,
+    category_id INT REFERENCES categories(category_id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(120) UNIQUE,
     description TEXT,
@@ -103,12 +99,9 @@ CREATE TABLE sub_categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- TYPE = Polo / Round Neck / V-Neck
 CREATE TABLE product_types (
     type_id SERIAL PRIMARY KEY,
-    sub_category_id INT NOT NULL
-        REFERENCES sub_categories(sub_category_id)
-        ON DELETE CASCADE,
+    sub_category_id INT REFERENCES sub_categories(sub_category_id) ON DELETE CASCADE,
     type_name VARCHAR(100) NOT NULL,
     slug VARCHAR(120) UNIQUE,
     image_url TEXT,
@@ -118,28 +111,19 @@ CREATE TABLE product_types (
 );
 
 -- =====================================================
--- PRODUCTS (BRAND + SKU MANDATORY)
+-- PRODUCTS (NO PRICE HERE)
 -- =====================================================
 
 CREATE TABLE products (
     product_id SERIAL PRIMARY KEY,
-
-    brand_id INT NOT NULL
-        REFERENCES brands(brand_id)
-        ON DELETE RESTRICT,
-
+    brand_id INT NOT NULL REFERENCES brands(brand_id) ON DELETE RESTRICT,
     sku VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(150) NOT NULL,
     description TEXT,
-
-    price NUMERIC(10,2) NOT NULL,
-    discount_price NUMERIC(10,2),
-
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Product → Type mapping
 CREATE TABLE product_type_mapping (
     product_id INT REFERENCES products(product_id) ON DELETE CASCADE,
     type_id INT REFERENCES product_types(type_id) ON DELETE CASCADE,
@@ -147,18 +131,32 @@ CREATE TABLE product_type_mapping (
 );
 
 -- =====================================================
--- COLOR MASTER
+-- MASTER TABLES (SIZE / COLOR / FABRIC / PATTERN)
 -- =====================================================
+
+CREATE TABLE sizes (
+    size_id SERIAL PRIMARY KEY,
+    size_name VARCHAR(10) UNIQUE NOT NULL
+);
 
 CREATE TABLE colors (
     color_id SERIAL PRIMARY KEY,
-    color_name VARCHAR(50) UNIQUE NOT NULL,
-    hex_code VARCHAR(7),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    color_name VARCHAR(30) UNIQUE NOT NULL,
+    hex_code VARCHAR(10)
+);
+
+CREATE TABLE fabrics (
+    fabric_id SERIAL PRIMARY KEY,
+    fabric_name VARCHAR(30) UNIQUE NOT NULL
+);
+
+CREATE TABLE patterns (
+    pattern_id SERIAL PRIMARY KEY,
+    pattern_name VARCHAR(30) UNIQUE NOT NULL
 );
 
 -- =====================================================
--- PRODUCT VARIANTS (SIZE + COLOR)
+-- PRODUCT VARIANTS (SELLABLE UNIT)
 -- =====================================================
 
 CREATE TABLE product_variants (
@@ -168,15 +166,25 @@ CREATE TABLE product_variants (
         REFERENCES products(product_id)
         ON DELETE CASCADE,
 
-    size VARCHAR(10) NOT NULL,
+    size_id INT NOT NULL
+        REFERENCES sizes(size_id),
 
     color_id INT NOT NULL
         REFERENCES colors(color_id),
 
+    fabric_id INT
+        REFERENCES fabrics(fabric_id),
+
+    pattern_id INT
+        REFERENCES patterns(pattern_id),
+
+    price NUMERIC(10,2) NOT NULL,
+    discount_price NUMERIC(10,2),
+
     variant_sku VARCHAR(80) NOT NULL UNIQUE,
 
-    CONSTRAINT unique_product_size_color
-        UNIQUE (product_id, size, color_id)
+    CONSTRAINT unique_product_variant
+        UNIQUE (product_id, size_id, color_id)
 );
 
 -- =====================================================
@@ -185,7 +193,7 @@ CREATE TABLE product_variants (
 
 CREATE TABLE inventory (
     inventory_id SERIAL PRIMARY KEY,
-    variant_id INT NOT NULL REFERENCES product_variants(variant_id) ON DELETE CASCADE,
+    variant_id INT REFERENCES product_variants(variant_id) ON DELETE CASCADE,
     stock_quantity INT DEFAULT 0,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -199,19 +207,19 @@ CREATE TABLE inventory_logs (
 );
 
 -- =====================================================
--- PRODUCT IMAGES
+-- PRODUCT IMAGES (VARIANT LEVEL)
 -- =====================================================
 
 CREATE TABLE product_images (
     image_id SERIAL PRIMARY KEY,
-    product_id INT REFERENCES products(product_id) ON DELETE CASCADE,
+    variant_id INT REFERENCES product_variants(variant_id) ON DELETE CASCADE,
     image_url TEXT NOT NULL,
-    is_primary BOOLEAN DEFAULT FALSE
+    is_primary BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =====================================================
 -- PRODUCT BADGES
--- (Top Deals / Featured / Best Selling)
 -- =====================================================
 
 CREATE TABLE product_badges (
@@ -228,12 +236,10 @@ CREATE TABLE product_badge_mapping (
     PRIMARY KEY (product_id, badge_id)
 );
 
--- Default badges
-INSERT INTO product_badges (badge_name, description)
-VALUES
-('Top Deals', 'High discount or promotional products'),
-('Featured', 'Highlighted products on homepage'),
-('Best Selling', 'Most sold products');
+INSERT INTO product_badges (badge_name, description) VALUES
+('Top Deals', 'High discount products'),
+('Featured', 'Homepage featured products'),
+('Best Selling', 'Most purchased products');
 
 -- =====================================================
 -- CART

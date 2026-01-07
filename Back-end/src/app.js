@@ -23,4 +23,12 @@ app.use("/api/subcategories", subCategoryRoutes);
 const productTypeRoutes = require("./routes/productType.routes");
 app.use("/api/product-types", productTypeRoutes);
 
+
+// ... existing imports
+const productRoutes = require("./routes/product.route");
+
+// ... existing middleware
+app.use("/api/products", productRoutes);
+
+
 module.exports = app;

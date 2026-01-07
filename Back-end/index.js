@@ -50,7 +50,7 @@ const storage = multer.diskStorage({
     } else {
       uploadPath = 'uploads/misc';
     }
-    
+
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -92,7 +92,7 @@ app.post('/api/master-categories', upload.single('image'), async (req, res) => {
     const pool = require('./src/config/database');
     const { name, slug, is_active } = req.body;
     const image_url = req.file ? `/uploads/categories/master/${req.file.filename}` : null;
-    
+
     const result = await pool.query(
       'INSERT INTO master_categories (name, slug, image_url, is_active) VALUES ($1, $2, $3, $4) RETURNING *',
       [name, slug, image_url, is_active === 'true']
@@ -128,7 +128,7 @@ try {
   console.log('✅ Category routes loaded');
 } catch (error) {
   console.error('❌ Failed to load category routes:', error.message);
-  
+
   // Add category routes directly as fallback
   app.get('/api/categories', async (req, res) => {
     try {
@@ -148,14 +148,14 @@ try {
       res.status(500).json({ success: false, error: err.message });
     }
   });
-  
+
   app.post('/api/categories', upload.single('image'), async (req, res) => {
     const { master_category_id, name, slug, is_active } = req.body;
     let icon_url = null;
     if (req.file) {
       icon_url = `/uploads/categories/${req.file.filename}`;
     }
-    
+
     try {
       const pool = require('./src/config/database');
       const result = await pool.query(
@@ -167,7 +167,7 @@ try {
       res.status(400).json({ success: false, error: err.message });
     }
   });
-  
+
   console.log('✅ Category routes added directly');
 }
 
@@ -178,7 +178,7 @@ try {
   console.log('✅ SubCategory routes loaded');
 } catch (error) {
   console.error('❌ Failed to load subcategory routes:', error.message);
-  
+
   // Add subcategory routes directly as fallback
   app.get('/api/subcategories', async (req, res) => {
     try {
@@ -205,14 +205,14 @@ try {
       res.status(500).json({ success: false, error: err.message });
     }
   });
-  
+
   app.post('/api/subcategories', upload.single('image'), async (req, res) => {
     const { category_id, name, slug, is_active } = req.body;
     let image_url = null;
     if (req.file) {
       image_url = `/uploads/subcategories/${req.file.filename}`;
     }
-    
+
     try {
       const pool = require('./src/config/database');
       const result = await pool.query(
@@ -224,7 +224,7 @@ try {
       res.status(400).json({ success: false, error: err.message });
     }
   });
-  
+
   app.delete('/api/subcategories/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -239,7 +239,7 @@ try {
       res.status(500).json({ success: false, message: error.message });
     }
   });
-  
+
   console.log('✅ SubCategory routes added directly');
 }
 
@@ -275,18 +275,18 @@ try {
       res.status(500).json({ success: false, error: err.message });
     }
   });
-  
+
   app.post('/api/product-types', upload.single('image'), async (req, res) => {
     console.log('=== PRODUCT TYPE CREATE DEBUG ===');
     console.log('req.body:', req.body);
     console.log('req.file:', req.file);
-    
+
     const { sub_category_id, type_name, slug, is_active } = req.body;
     let image_url = null;
     if (req.file) {
       image_url = `/uploads/product-types/${req.file.filename}`;
     }
-    
+
     try {
       const pool = require('./src/config/database');
       const result = await pool.query(
@@ -300,7 +300,7 @@ try {
       res.status(400).json({ success: false, error: err.message });
     }
   });
-  
+
   app.delete('/api/product-types/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -312,10 +312,66 @@ try {
       res.status(500).json({ success: false, message: error.message });
     }
   });
-  
+
   console.log('✅ Product Type routes added directly');
 } catch (error) {
   console.error('❌ Failed to add product type routes:', error.message);
+}
+
+// Import and use Brand routes
+try {
+  const brandRoutes = require('./src/routes/brand.routes');
+  app.use('/api/brands', brandRoutes);
+  console.log('✅ Brand routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load brand routes:', error.message);
+}
+
+// Import and use Color routes
+try {
+  const colorRoutes = require('./src/routes/color.routes');
+  app.use('/api/colors', colorRoutes);
+  console.log('✅ Color routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load color routes:', error.message);
+}
+
+
+
+// Import and use Size routes
+try {
+  const sizeRoutes = require('./src/routes/size.routes');
+  app.use('/api/sizes', sizeRoutes);
+  console.log('✅ Size routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load size routes:', error.message);
+}
+
+// Import and use Fabric routes
+try {
+  const fabricRoutes = require('./src/routes/fabric.routes');
+  app.use('/api/fabrics', fabricRoutes);
+  console.log('✅ Fabric routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load fabric routes:', error.message);
+}
+
+// Import and use Pattern routes
+try {
+  const patternRoutes = require('./src/routes/pattern.routes');
+  app.use('/api/patterns', patternRoutes);
+  console.log('✅ Pattern routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load pattern routes:', error.message);
+}
+
+// Register Product routes
+try {
+  const productRoutes = require('./src/routes/product.routes');
+  app.use('/api/products', productRoutes);
+  console.log('✅ Product routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load product routes:', error.message);
 }
 
 app.listen(PORT, () => {
