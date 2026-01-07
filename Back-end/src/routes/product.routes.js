@@ -22,6 +22,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// Get all products
+router.get("/", productController.getAllProducts);
+
 // Use upload.array because we are sending multiple variant images
 router.post("/", upload.array("variantImage"), productController.createProduct);
 

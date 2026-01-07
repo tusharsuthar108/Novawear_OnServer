@@ -1,5 +1,20 @@
 const pool = require('../config/database');
 
+exports.getAllProducts = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT p.*, b.brand_name 
+      FROM products p 
+      LEFT JOIN brands b ON p.brand_id = b.brand_id 
+      ORDER BY p.name
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Get Products Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 exports.createProduct = async (req, res) => {
   let client;
 

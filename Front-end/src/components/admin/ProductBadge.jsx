@@ -8,9 +8,7 @@ const ProductBadge = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingBadge, setEditingBadge] = useState(null);
   const [formData, setFormData] = useState({
-    badge_name: '',
-    description: '',
-    is_active: true
+    badge_name: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,7 +58,7 @@ const ProductBadge = () => {
         }
       }
       
-      setFormData({ badge_name: '', description: '', is_active: true });
+      setFormData({ badge_name: '' });
       setShowForm(false);
       setEditingBadge(null);
       setTimeout(() => setSuccess(''), 3000);
@@ -74,9 +72,7 @@ const ProductBadge = () => {
   const handleEdit = (badge) => {
     setEditingBadge(badge);
     setFormData({
-      badge_name: badge.badge_name,
-      description: badge.description || '',
-      is_active: badge.is_active
+      badge_name: badge.badge_name
     });
     setShowForm(true);
   };
@@ -95,19 +91,17 @@ const ProductBadge = () => {
   };
 
   const resetForm = () => {
-    setFormData({ badge_name: '', description: '', is_active: true });
+    setFormData({ badge_name: '' });
     setShowForm(false);
     setEditingBadge(null);
   };
 
   // Filter badges based on search
   const filteredBadges = badges.filter(badge => 
-    badge.badge_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (badge.description && badge.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    badge.badge_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalBadges = filteredBadges.length;
-  const activeBadges = filteredBadges.filter(badge => badge.is_active).length;
 
   return (
     <div className="space-y-6">
@@ -145,7 +139,7 @@ const ProductBadge = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
           <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
             <Award size={24} />
@@ -153,16 +147,6 @@ const ProductBadge = () => {
           <div>
             <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Badges</p>
             <h3 className="text-2xl font-bold text-slate-900">{totalBadges}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-            <Award size={24} />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Active Badges</p>
-            <h3 className="text-2xl font-bold text-slate-900">{activeBadges}</h3>
           </div>
         </div>
       </div>
@@ -205,44 +189,17 @@ const ProductBadge = () => {
             {editingBadge ? 'Edit Badge' : 'Add New Badge'}
           </h3>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Badge Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.badge_name}
-                  onChange={(e) => setFormData({...formData, badge_name: e.target.value})}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
-                  placeholder="Enter badge name"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Status
-                </label>
-                <select
-                  value={formData.is_active}
-                  onChange={(e) => setFormData({...formData, is_active: e.target.value === 'true'})}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
-                >
-                  <option value="true">Active</option>
-                  <option value="false">Inactive</option>
-                </select>
-              </div>
-            </div>
             <div className="mb-6">
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                Description
+                Badge Name
               </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+              <input
+                type="text"
+                value={formData.badge_name}
+                onChange={(e) => setFormData({...formData, badge_name: e.target.value})}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
-                placeholder="Enter badge description"
-                rows="3"
+                placeholder="Enter badge name"
+                required
               />
             </div>
             <div className="flex space-x-3">
@@ -272,8 +229,6 @@ const ProductBadge = () => {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[13px] uppercase tracking-wider">
                 <th className="px-6 py-4 font-semibold">Badge Name</th>
-                <th className="px-6 py-4 font-semibold">Description</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold">ID</th>
                 <th className="px-6 py-4 font-semibold text-center">Actions</th>
               </tr>
@@ -284,17 +239,6 @@ const ProductBadge = () => {
                   <tr key={badge.badge_id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-6 py-4">
                       <span className="font-bold text-slate-900 text-sm">{badge.badge_name}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{badge.description || 'No description'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
-                        ${badge.is_active 
-                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                          : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-                        {badge.is_active ? 'Active' : 'Inactive'}
-                      </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-500">
                       <span className="text-[11px] text-slate-400 font-semibold tracking-wider">#{badge.badge_id}</span>
@@ -319,7 +263,7 @@ const ProductBadge = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-slate-400 font-medium">
+                  <td colSpan="3" className="px-6 py-12 text-center text-slate-400 font-medium">
                     {searchTerm 
                       ? 'No badges match your search.' 
                       : 'No badges found. Add your first badge!'}

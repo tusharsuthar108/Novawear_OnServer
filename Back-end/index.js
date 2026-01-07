@@ -48,6 +48,23 @@ app.get('/test-colors', async (req, res) => {
   }
 });
 
+// Products API - Direct route
+app.get('/api/products', async (req, res) => {
+  try {
+    const pool = require('./src/config/database');
+    const result = await pool.query(`
+      SELECT p.*, b.brand_name 
+      FROM products p 
+      LEFT JOIN brands b ON p.brand_id = b.brand_id 
+      ORDER BY p.name
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Products API error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Direct POST route
 const multer = require('multer');
 const fs = require('fs');
@@ -488,6 +505,25 @@ try {
   console.log('✅ Product routes loaded');
 } catch (error) {
   console.error('❌ Failed to load product routes:', error.message);
+  
+  // Add product routes directly as fallback
+  app.get('/api/products', async (req, res) => {
+    try {
+      const pool = require('./src/config/database');
+      const result = await pool.query(`
+        SELECT p.*, b.brand_name 
+        FROM products p 
+        LEFT JOIN brands b ON p.brand_id = b.brand_id 
+        ORDER BY p.name
+      `);
+      res.json({ success: true, data: result.rows });
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+  
+  console.log('✅ Product routes added directly');
 }
 
 // Import and use Product Badge routes
