@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Crown, Star, Zap, ArrowLeft } from 'lucide-react';
-import { fetchPricingPlans, createPricingPlan, deletePricingPlan } from '../../api/pricing.api';
+import { fetchPricingPlans, createPricingPlan, updatePricingPlan, deletePricingPlan } from '../../api/pricing.api';
 
 const PricingPlans = () => {
   const [plans, setPlans] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingPlan, setEditingPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -35,15 +36,33 @@ const PricingPlans = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createPricingPlan(formData);
-      setSuccess('Plan created successfully!');
+      if (editingPlan) {
+        await updatePricingPlan(editingPlan.plan_id, formData);
+        setSuccess('Plan updated successfully!');
+      } else {
+        await createPricingPlan(formData);
+        setSuccess('Plan created successfully!');
+      }
       setShowAddForm(false);
+      setEditingPlan(null);
       setFormData({ plan_name: '', description: '', discount_type: 'percentage', discount_value: '', is_active: true });
       loadPlans();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleEdit = (plan) => {
+    setEditingPlan(plan);
+    setFormData({
+      plan_name: plan.plan_name,
+      description: plan.description || '',
+      discount_type: plan.discount_type,
+      discount_value: plan.discount_value.toString(),
+      is_active: plan.is_active
+    });
+    setShowAddForm(true);
   };
 
   const handleDelete = async (id) => {
@@ -85,7 +104,7 @@ const PricingPlans = () => {
           </button>
         </div>
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-slate-800 mb-6">Add New Plan</h2>
+          <h2 className="text-2xl font-bold text-slate-800 mb-6">{editingPlan ? 'Edit Plan' : 'Add New Plan'}</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <input 
@@ -121,8 +140,8 @@ const PricingPlans = () => {
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
             ></textarea>
             <div className="flex gap-4">
-              <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">Save Plan</button>
-              <button type="button" onClick={() => setShowAddForm(false)} className="bg-slate-100 text-slate-600 px-8 py-3 rounded-xl font-medium hover:bg-slate-200 transition-colors">Cancel</button>
+              <button type="submit" className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">{editingPlan ? 'Update Plan' : 'Save Plan'}</button>
+              <button type="button" onClick={() => {setShowAddForm(false); setEditingPlan(null);}} className="bg-slate-100 text-slate-600 px-8 py-3 rounded-xl font-medium hover:bg-slate-200 transition-colors">Cancel</button>
             </div>
           </form>
         </div>
@@ -167,7 +186,10 @@ const PricingPlans = () => {
                 <h3 className="text-xl font-bold text-slate-800">{plan.plan_name}</h3>
               </div>
               <div className="flex gap-2">
-                <button className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50">
+                <button 
+                  onClick={() => handleEdit(plan)}
+                  className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50"
+                >
                   <Edit size={16} />
                 </button>
                 <button 
