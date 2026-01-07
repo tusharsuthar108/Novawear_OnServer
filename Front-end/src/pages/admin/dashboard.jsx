@@ -19,6 +19,7 @@ import {
   PanelLeftOpen,
   Search,
   Bell,
+  Award,
 } from "lucide-react";
 
 // Import all components
@@ -26,6 +27,12 @@ import MasterCategory from '../../components/admin/MasterCategory';
 import Category from '../../components/admin/Category';
 import SubCategory from '../../components/admin/SubCategory';
 import ProductType from '../../components/admin/ProductType';
+import ProductColour from '../../components/admin/ProductColour';
+import ProductFabric from '../../components/admin/ProductFabric';
+import ProductPattern from '../../components/admin/ProductPattern';
+import ProductSize from '../../components/admin/ProductSize';
+import ProductBadge from '../../components/admin/ProductBadge';
+import BadgesOnProduct from '../../components/admin/BadgesOnProduct';
 import AdminOrders from './Orders';
 import OrderDetails from '../../components/admin/OrderDetails';
 import Transactions from '../../components/admin/Transactions';
@@ -69,6 +76,12 @@ const Dashboard = () => {
       "Category": <Category />,
       "Sub Category": <SubCategory />,
       "Product Type": <ProductType />,
+      "Product Colour": <ProductColour />,
+      "Product Fabric": <ProductFabric />,
+      "Product Pattern": <ProductPattern />,
+      "Product Size": <ProductSize />,
+      "Product Badge": <ProductBadge />,
+      "Badges on Product": <BadgesOnProduct />,
       "Order List": <AdminOrders />,
       "Order Details": <OrderDetails />,
       "Inventory": <Inventory />,
@@ -132,11 +145,18 @@ const Dashboard = () => {
     },
 
     { title: "Brand", icon: <Bookmark size={20} /> },
+    { title: "Shop", icon: <ShoppingCart size={20} /> },
+    {
+      title: "Badges",
+      icon: <Award size={20} />,
+      submenu: true,
+      submenuItems: ["Product Badge", "Badges on Product"],
+    },
     {
       title: "Product",
       icon: <Tag size={20} />,
       submenu: true,
-      submenuItems: ["Product Type", "Management"],
+      submenuItems: ["Product Type", "Product Colour", "Product Fabric", "Product Pattern", "Product Size"],
     },
     { title: "Pricing", icon: <CircleDollarSign size={20} />, submenu: true, submenuItems: ["Pricing Plans", "Product Pricing", "Discounts & Coupons", "Taxes & Fees"] },
   ];

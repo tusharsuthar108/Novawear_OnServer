@@ -51,6 +51,7 @@ const AddProduct = () => {
         brand: "", // brand_id
         sku: "SKU-PENDING",
         description: "",
+        long_description: "",
         master: null,
         category: null,
         subCategory: null,
@@ -107,15 +108,27 @@ const AddProduct = () => {
     const [allProductTypes, setAllProductTypes] = useState([]);
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/categories').then(r => r.json()).then(d => setAllCategories(d.data || []));
-        fetch('http://localhost:3000/api/subcategories').then(r => r.json()).then(d => setAllSubCategories(d.data || []));
-        fetch('http://localhost:3000/api/product-types').then(r => r.json()).then(d => setAllProductTypes(d.data || []));
+        fetch('http://localhost:3000/api/categories').then(r => r.json()).then(d => {
+            console.log('Categories loaded:', d.data?.length || 0);
+            setAllCategories(d.data || []);
+        });
+        fetch('http://localhost:3000/api/subcategories').then(r => r.json()).then(d => {
+            console.log('Subcategories loaded:', d.data?.length || 0);
+            setAllSubCategories(d.data || []);
+        });
+        fetch('http://localhost:3000/api/product-types').then(r => r.json()).then(d => {
+            console.log('Product types loaded:', d.data?.length || 0);
+            console.log('Product types data:', d.data);
+            setAllProductTypes(d.data || []);
+        });
     }, []);
 
     // Derived state for dropdowns
     const availableCategories = allCategories.filter(c => c.master_category_id === formData.master?.master_category_id);
     const availableSubCategories = allSubCategories.filter(sc => sc.category_id === formData.category?.category_id);
     const availableTypes = allProductTypes.filter(pt => pt.sub_category_id === formData.subCategory?.sub_category_id);
+    
+    console.log('Available types for subcategory', formData.subCategory?.sub_category_id, ':', availableTypes);
 
 
     // Effect to handle SKU generation
@@ -142,6 +155,7 @@ const AddProduct = () => {
         data.append("brand", formData.brand); // brand_id
         data.append("sku", formData.sku);
         data.append("description", formData.description);
+        data.append("long_description", formData.long_description);
 
         // 2. Append Category IDs
         data.append("master", formData.master?.master_category_id);
@@ -277,12 +291,22 @@ const AddProduct = () => {
                                 <div className="absolute -top-2 left-3 px-1 bg-white text-[9px] font-bold text-indigo-400 uppercase">Auto-Generated SKU</div>
                             </div>
                         </div>
-                        <div className="mt-4">
+                        <div className="mt-4 space-y-4">
                             <FloatingInput
                                 label="Description"
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             />
+                            <div className="w-full">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Long Description</label>
+                                <textarea
+                                    value={formData.long_description}
+                                    onChange={(e) => setFormData({ ...formData, long_description: e.target.value })}
+                                    className="w-full rounded-xl border-2 border-slate-100 bg-slate-50/50 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all text-sm"
+                                    rows="4"
+                                    placeholder="Enter detailed product description..."
+                                />
+                            </div>
                         </div>
                     </Section>
 

@@ -32,6 +32,22 @@ app.get('/test', (req, res) => {
   res.json({ status: 'OK', message: 'Server is working!' });
 });
 
+// Test colors endpoint
+app.get('/test-colors', async (req, res) => {
+  try {
+    const pool = require('./src/config/database');
+    const result = await pool.query('SELECT COUNT(*) as total FROM colors');
+    res.json({ 
+      status: 'OK', 
+      message: 'Colors API working!', 
+      total_colors: result.rows[0].total,
+      api_endpoint: '/api/colors'
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'ERROR', error: error.message });
+  }
+});
+
 // Direct POST route
 const multer = require('multer');
 const fs = require('fs');
@@ -267,7 +283,7 @@ try {
         LEFT JOIN sub_categories sc ON sc.sub_category_id = pt.sub_category_id
         LEFT JOIN categories c ON c.category_id = sc.category_id
         LEFT JOIN master_categories mc ON mc.master_category_id = c.master_category_id
-        ORDER BY pt.created_at DESC
+        ORDER BY pt.type_id DESC
       `);
       res.json({ success: true, data: result.rows });
     } catch (err) {
@@ -289,9 +305,28 @@ try {
 
     try {
       const pool = require('./src/config/database');
+      
+      // Check if slug already exists and generate unique one if needed
+      let finalSlug = slug;
+      let counter = 1;
+      
+      while (true) {
+        const existingSlug = await pool.query(
+          'SELECT slug FROM product_types WHERE slug = $1',
+          [finalSlug]
+        );
+        
+        if (existingSlug.rows.length === 0) {
+          break; // Slug is unique
+        }
+        
+        finalSlug = `${slug}-${counter}`;
+        counter++;
+      }
+      
       const result = await pool.query(
         'INSERT INTO product_types (sub_category_id, type_name, slug, image_url, is_active) VALUES ($1,$2,$3,$4,$5) RETURNING *',
-        [sub_category_id, type_name, slug, image_url, is_active === 'true' || is_active === true]
+        [sub_category_id, type_name, finalSlug, image_url, is_active === 'true' || is_active === true]
       );
       console.log('Product type created successfully:', result.rows[0]);
       res.status(201).json({ success: true, data: result.rows[0] });
@@ -329,18 +364,68 @@ try {
 
 // Import and use Color routes
 try {
-  const colorRoutes = require('./src/routes/color.routes');
+  const colorRoutes = require('./src/routes/colorRoutes');
   app.use('/api/colors', colorRoutes);
   console.log('✅ Color routes loaded');
 } catch (error) {
   console.error('❌ Failed to load color routes:', error.message);
+  
+  // Add color routes directly as fallback
+  app.get('/api/colors', async (req, res) => {
+    try {
+      const pool = require('./src/config/database');
+      const result = await pool.query('SELECT * FROM colors ORDER BY color_name');
+      res.json({ success: true, data: result.rows });
+    } catch (err) {
+      console.error('Error fetching colors:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.post('/api/colors', async (req, res) => {
+    try {
+      const pool = require('./src/config/database');
+      const { color_name, hex_code } = req.body;
+      const result = await pool.query(
+        'INSERT INTO colors (color_name, hex_code) VALUES ($1, $2) RETURNING *',
+        [color_name, hex_code]
+      );
+      res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (err) {
+      console.error('Error creating color:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.delete('/api/colors/:id', async (req, res) => {
+    try {
+      const pool = require('./src/config/database');
+      const { id } = req.params;
+      await pool.query('DELETE FROM colors WHERE color_id = $1', [id]);
+      res.json({ success: true, message: 'Color deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting color:', err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  console.log('✅ Color routes added directly');
 }
 
 
 
+// Import and use Badge routes
+try {
+  const badgeRoutes = require('./src/routes/badgeRoutes');
+  app.use('/api/badges', badgeRoutes);
+  console.log('✅ Badge routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load badge routes:', error.message);
+}
+
 // Import and use Size routes
 try {
-  const sizeRoutes = require('./src/routes/size.routes');
+  const sizeRoutes = require('./src/routes/sizeRoutes');
   app.use('/api/sizes', sizeRoutes);
   console.log('✅ Size routes loaded');
 } catch (error) {
@@ -349,7 +434,7 @@ try {
 
 // Import and use Fabric routes
 try {
-  const fabricRoutes = require('./src/routes/fabric.routes');
+  const fabricRoutes = require('./src/routes/fabricRoutes');
   app.use('/api/fabrics', fabricRoutes);
   console.log('✅ Fabric routes loaded');
 } catch (error) {
@@ -358,7 +443,7 @@ try {
 
 // Import and use Pattern routes
 try {
-  const patternRoutes = require('./src/routes/pattern.routes');
+  const patternRoutes = require('./src/routes/patternRoutes');
   app.use('/api/patterns', patternRoutes);
   console.log('✅ Pattern routes loaded');
 } catch (error) {
@@ -372,6 +457,15 @@ try {
   console.log('✅ Product routes loaded');
 } catch (error) {
   console.error('❌ Failed to load product routes:', error.message);
+}
+
+// Import and use Product Badge routes
+try {
+  const productBadgeRoutes = require('./src/routes/productBadgeRoutes');
+  app.use('/api/product-badges', productBadgeRoutes);
+  console.log('✅ Product Badge routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load product badge routes:', error.message);
 }
 
 app.listen(PORT, () => {

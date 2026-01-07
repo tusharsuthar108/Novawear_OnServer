@@ -7,7 +7,7 @@ exports.createProduct = async (req, res) => {
     client = await pool.connect();
     await client.query('BEGIN');
 
-    const { title, brand, sku, description, master, category, subCategory, type } = req.body;
+    const { title, brand, sku, description, long_description, master, category, subCategory, type } = req.body;
 
     // Parse variants
     let variants;
@@ -31,33 +31,33 @@ exports.createProduct = async (req, res) => {
     console.log('--- Creating Product ---');
     console.log('Title:', title);
 
-    // 1. Insert into products table (No PRICE here anymore)
+    // 1. Insert into products table with category references
     const productQuery = `
-      INSERT INTO products (brand_id, sku, name, description, is_active)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO products (brand_id, master_category_id, category_id, sub_category_id, type_id, badge_id, sku, name, description, long_description, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING product_id
     `;
 
     const productResult = await client.query(productQuery, [
       brand,
+      master || null,
+      category || null, 
+      subCategory || null,
+      type || null,
+      null, // badge_id - can be set later via badge management
       sku,
       title,
       description,
+      long_description,
       true
     ]);
 
     const productId = productResult.rows[0].product_id;
     console.log('Created Product ID:', productId);
 
-    // 2. Insert into product_type_mapping
-    if (type) {
-      await client.query(
-        'INSERT INTO product_type_mapping (product_id, type_id) VALUES ($1, $2)',
-        [productId, type]
-      );
-    }
+    // No need for product_type_mapping table as type_id is directly in products table
 
-    // 3. Process Variants
+    // 2. Process Variants
     for (const variant of variants) {
       const { attributes, stock, salePrice, mrp } = variant;
       const colorId = attributes.Color; // ID
@@ -99,13 +99,13 @@ exports.createProduct = async (req, res) => {
 
       const variantId = variantResult.rows[0].variant_id;
 
-      // 4. Insert into Inventory
+      // 3. Insert into Inventory
       await client.query(
         'INSERT INTO inventory (variant_id, stock_quantity) VALUES ($1, $2)',
         [variantId, stock || 0]
       );
 
-      // 5. Insert Images (LINKED TO VARIANT ID now)
+      // 4. Insert Images (LINKED TO VARIANT ID now)
       if (variant.imageUrl) {
         await client.query(
           'INSERT INTO product_images (variant_id, image_url, is_primary) VALUES ($1, $2, $3)',
