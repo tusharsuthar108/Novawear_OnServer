@@ -481,6 +481,15 @@ try {
   console.error('❌ Failed to load pattern routes:', error.message);
 }
 
+// Import and use shipment routes
+try {
+  const shipmentRoutes = require('./src/routes/shipment.routes');
+  app.use('/api/shipments', shipmentRoutes);
+  console.log('✅ Shipment routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load shipment routes:', error.message);
+}
+
 // Register Product routes
 try {
   const productRoutes = require('./src/routes/product.routes');
@@ -507,4 +516,5 @@ app.listen(PORT, () => {
   console.log(`📂 SubCategories API: http://localhost:${PORT}/api/subcategories`);
   console.log(`📂 Product Types API: http://localhost:${PORT}/api/product-types`);
   console.log(`💰 Pricing API: http://localhost:${PORT}/api/pricing`);
+  console.log(`🚚 Shipments API: http://localhost:${PORT}/api/shipments`);
 });

@@ -42,6 +42,9 @@ import DiscountsCoupons from '../../components/admin/DiscountsCoupons';
 import TaxesFees from '../../components/admin/TaxesFees';
 import Inventory from '../../components/admin/Inventory';
 import AddProduct from "../../components/admin/AddProduct";
+import Pending from '../../components/admin/Pending';
+import InTransit from '../../components/admin/InTransit';
+import Delivered from '../../components/admin/Delivered';
 // import BrandList from './BrandList';
 // import AddBrand from './AddBrand';
 // import ProductList from './ProductList';
@@ -91,6 +94,9 @@ const Dashboard = () => {
       "Discounts & Coupons": <DiscountsCoupons />,
       "Taxes & Fees": <TaxesFees />,
       "Add Product": <AddProduct />,
+      "Pending": <Pending />,
+      "In Transit": <InTransit />,
+      "Delivered": <Delivered />,
       // "Brand List": <BrandList />,
       // "Add Brand": <AddBrand />,
       // "Product List": <ProductList />,
