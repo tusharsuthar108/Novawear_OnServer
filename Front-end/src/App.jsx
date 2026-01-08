@@ -16,18 +16,19 @@ import Tranding from "./pages/Tranding";
 import AdminOrders from "./pages/admin/Orders";
 
 
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+import Login from "./pages/auth/Login";
+import Signup from "./pages/auth/Signup";
 
 
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isAuthRoute = location.pathname === '/login' || location.pathname === '/signup';
 
   return (
     <>
-      {/* Navbar visible on all pages except admin routes */}
-      {!isAdminRoute && <Navbar />}
+      {/* Navbar visible on all pages except admin and auth routes */}
+      {!isAdminRoute && !isAuthRoute && <Navbar />}
 
       <Routes>
           {/* Home */}

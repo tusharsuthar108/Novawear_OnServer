@@ -1,16 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../config/database');
+const brandController = require('../controllers/brandController');
+const brandUpload = require('../middleware/brandUpload');
 
-// GET /api/brands
-router.get('/', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM brands ORDER BY brand_name ASC');
-        res.json({ success: true, data: result.rows });
-    } catch (error) {
-        console.error('Error fetching brands:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
+router.get('/', brandController.getAllBrands);
+router.get('/:id', brandController.getBrandById);
+router.post('/', brandUpload.single('logo'), brandController.createBrand);
+router.put('/:id', brandUpload.single('logo'), brandController.updateBrand);
+router.delete('/:id', brandController.deleteBrand);
 
 module.exports = router;

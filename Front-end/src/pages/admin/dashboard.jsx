@@ -20,33 +20,44 @@ import {
   Search,
   Bell,
   Award,
+  Package,
+  Grid3X3,
+  Badge,
+  Shirt,
 } from "lucide-react";
 
 // Import all components
-import MasterCategory from '../../components/admin/MasterCategory';
-import Category from '../../components/admin/Category';
-import SubCategory from '../../components/admin/SubCategory';
-import ProductType from '../../components/admin/ProductType';
-import ProductColour from '../../components/admin/ProductColour';
-import ProductFabric from '../../components/admin/ProductFabric';
-import ProductPattern from '../../components/admin/ProductPattern';
-import ProductSize from '../../components/admin/ProductSize';
-import ProductBadge from '../../components/admin/ProductBadge';
-import BadgesOnProduct from '../../components/admin/BadgesOnProduct';
-import AdminOrders from './Orders';
-import OrderDetails from '../../components/admin/OrderDetails';
-import Transactions from '../../components/admin/Transactions';
-import PricingPlans from '../../components/admin/PricingPlans';
-import Productpricing from '../../components/admin/Productpricing';
-import DiscountsCoupons from '../../components/admin/DiscountsCoupons';
-import TaxesFees from '../../components/admin/TaxesFees';
-import Inventory from '../../components/admin/Inventory';
+import MasterCategory from "../../components/admin/MasterCategory";
+import Category from "../../components/admin/Category";
+import SubCategory from "../../components/admin/SubCategory";
+import ProductType from "../../components/admin/ProductType";
+import ProductColour from "../../components/admin/ProductColour";
+import ProductFabric from "../../components/admin/ProductFabric";
+import ProductPattern from "../../components/admin/ProductPattern";
+import ProductSize from "../../components/admin/ProductSize";
+import ProductBadge from "../../components/admin/ProductBadge";
+import BadgesOnProduct from "../../components/admin/BadgesOnProduct";
+import AdminOrders from "./Orders";
+import OrderDetails from "../../components/admin/OrderDetails";
+import Transactions from "../../components/admin/Transactions";
+import PricingPlans from "../../components/admin/PricingPlans";
+import Productpricing from "../../components/admin/Productpricing";
+import DiscountsCoupons from "../../components/admin/DiscountsCoupons";
+import TaxesFees from "../../components/admin/TaxesFees";
+import Inventory from "../../components/admin/Inventory";
+import ProductList from "../../components/admin/ProductList";
+import BrandList from '../../components/admin/BrandList';
+import AddBrand from '../../components/admin/AddBrand';
 import AddProduct from "../../components/admin/AddProduct";
+<<<<<<< HEAD
 import Pending from '../../components/admin/Pending';
 import InTransit from '../../components/admin/InTransit';
 import Delivered from '../../components/admin/Delivered';
 // import BrandList from './BrandList';
 // import AddBrand from './AddBrand';
+=======
+import Notification from "../../components/admin/Notification";
+>>>>>>> d91227e63da5391881177ba21d8bebdf26beeb31
 // import ProductList from './ProductList';
 // import AddProduct from './AddProduct';
 // import PriceList from './PriceList';
@@ -67,8 +78,12 @@ const Dashboard = () => {
   const [activeItem, setActiveItem] = useState("Dashboard");
   const [currentComponent, setCurrentComponent] = useState(
     <div className="bg-white rounded-lg border border-slate-200 p-6">
-      <h1 className="text-2xl font-bold text-slate-900 mb-4">Dashboard Overview</h1>
-      <p className="text-slate-600">Welcome to NovaWear Admin Panel. Select a menu item to get started.</p>
+      <h1 className="text-2xl font-bold text-slate-900 mb-4">
+        Dashboard Overview
+      </h1>
+      <p className="text-slate-600">
+        Welcome to NovaWear Admin Panel. Select a menu item to get started.
+      </p>
     </div>
   );
 
@@ -93,7 +108,11 @@ const Dashboard = () => {
       "Product Pricing": <Productpricing />,
       "Discounts & Coupons": <DiscountsCoupons />,
       "Taxes & Fees": <TaxesFees />,
+      "Product List": <ProductList />,
+      "Brand List": <BrandList />,
+      "Add Brand": <AddBrand />,
       "Add Product": <AddProduct />,
+<<<<<<< HEAD
       "Pending": <Pending />,
       "In Transit": <InTransit />,
       "Delivered": <Delivered />,
@@ -101,6 +120,8 @@ const Dashboard = () => {
       // "Add Brand": <AddBrand />,
       // "Product List": <ProductList />,
       // "Add Product": <AddProduct />,
+=======
+>>>>>>> d91227e63da5391881177ba21d8bebdf26beeb31
       // "Price List": <PriceList />,
       // "Order List": <OrderList />,
       // "Order Details": <OrderDetails />,
@@ -127,49 +148,88 @@ const Dashboard = () => {
     { title: "Dashboard", icon: <LayoutDashboard size={20} /> },
     {
       title: "Inventory",
-      icon: <Box size={20} />,
+      icon: <Package size={20} />,
       submenu: true,
-      submenuItems: ["Inventory", "Stock Levels", "Warehouse", "Adjustments"],
+      submenuItems: ["Inventory", 
+        "Stock Levels", 
+        "Warehouse", 
+        "Adjustments"],
     },
     {
       title: "Shipment",
       icon: <Truck size={20} />,
       submenu: true,
-      submenuItems: ["Pending", "In Transit", "Delivered"],
+      submenuItems: ["Pending", 
+        "In Transit", 
+        "Delivered"],
     },
     {
       title: "Orders",
-      icon: <Truck size={20} />,
+      icon: <ShoppingCart size={20} />,
       submenu: true,
-      submenuItems: ["Order List", "Order Details", "Transactions"],
+      submenuItems: ["Order List", 
+        "Order Details", 
+        "Transactions"],
     },
     {
       title: "Category",
-      icon: <Box size={20} />,
+      icon: <Grid3X3 size={20} />,
       submenu: true,
-      submenuItems: ["Master Category", "Category", "Sub Category"],
+      submenuItems: [
+        "Master Category", 
+        "Category", 
+        "Sub Category"],
     },
 
-    { title: "Brand", icon: <Bookmark size={20} /> },
-    { title: "Shop", icon: <ShoppingCart size={20} /> },
     {
-      title: "Badges",
+      title: "Brand",
       icon: <Award size={20} />,
       submenu: true,
-      submenuItems: ["Product Badge", "Badges on Product"],
+      submenuItems: [
+        "Brand List", 
+        "Add Brand"],
+    },
+    {
+      title: "Badges",
+      icon: <Badge size={20} />,
+      submenu: true,
+      submenuItems: [
+        "Product Badge", 
+        "Badges on Product"],
+    },
+    {
+      title: "Product Variantst",
+      icon: <Layers size={20} />,
+      submenu: true,
+      submenuItems: [
+        "Product Type",
+        "Product Colour",
+        "Product Fabric",
+        "Product Pattern",
+        "Product Size",
+      ],
     },
     {
       title: "Product",
-      icon: <Tag size={20} />,
+      icon: <Shirt size={20} />,
       submenu: true,
-      submenuItems: ["Product Type", "Product Colour", "Product Fabric", "Product Pattern", "Product Size"],
+      submenuItems: ["Add Product", "Product List"],
     },
-    { title: "Pricing", icon: <CircleDollarSign size={20} />, submenu: true, submenuItems: ["Pricing Plans", "Product Pricing", "Discounts & Coupons", "Taxes & Fees"] },
+    {
+      title: "Pricing",
+      icon: <CircleDollarSign size={20} />,
+      submenu: true,
+      submenuItems: [
+        "Pricing Plans",
+        "Product Pricing",
+        "Discounts & Coupons",
+        "Taxes & Fees",
+      ],
+    },
   ];
 
   return (
     <div className="flex bg-slate-50 min-h-screen font-sans antialiased">
-      
       <aside
         className={`h-screen sticky top-0 bg-white border-r border-slate-200 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col
         ${isOpen ? "w-[280px]" : "w-[80px]"}`}
@@ -215,9 +275,11 @@ const Dashboard = () => {
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto no-scrollbar">
           {menuItems.map((item, idx) => {
             const isActive = activeItem === item.title;
-            const hasActiveSubmenu = item.submenuItems?.some(sub => activeItem === sub);
+            const hasActiveSubmenu = item.submenuItems?.some(
+              (sub) => activeItem === sub
+            );
             const shouldShowAsActive = isActive || hasActiveSubmenu;
-            
+
             return (
               <div key={idx} className="relative">
                 <button
@@ -237,10 +299,10 @@ const Dashboard = () => {
                       setOpenMenus({}); // close all submenus
                     } else {
                       // Toggle submenu (open/close) only if sidebar is already open
-                      setOpenMenus(prev => {
+                      setOpenMenus((prev) => {
                         const isCurrentlyOpen = prev[item.title];
                         return {
-                          [item.title]: !isCurrentlyOpen
+                          [item.title]: !isCurrentlyOpen,
                         };
                       });
                     }
@@ -299,9 +361,9 @@ const Dashboard = () => {
                           setCurrentComponent(getComponent(sub));
                         }}
                         className={`w-full text-left py-2 text-[13px] transition-colors block font-medium ${
-                          activeItem === sub 
-                            ? 'text-indigo-600 font-semibold' 
-                            : 'text-slate-500 hover:text-indigo-600'
+                          activeItem === sub
+                            ? "text-indigo-600 font-semibold"
+                            : "text-slate-500 hover:text-indigo-600"
                         }`}
                       >
                         {sub}
@@ -347,7 +409,10 @@ const Dashboard = () => {
           {/* Search Bar */}
           <div className="flex items-center gap-4 flex-1 max-w-md">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
+                size={18}
+              />
               <input
                 type="text"
                 placeholder="Search..."
@@ -359,10 +424,7 @@ const Dashboard = () => {
           {/* Right Side Icons */}
           <div className="flex items-center gap-3">
             {/* Notifications */}
-            <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors relative">
-              <Bell size={20} />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            </button>
+            <Notification />
 
             {/* Settings */}
             <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
@@ -382,7 +444,6 @@ const Dashboard = () => {
         </main>
       </div>
     </div>
-
   );
 };
 

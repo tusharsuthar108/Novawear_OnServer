@@ -26,10 +26,9 @@ class Product {
   // Get product badges
   static async getProductBadges(productId) {
     const result = await pool.query(`
-      SELECT pb.*, pbm.product_id
+      SELECT pb.badge_id, pb.badge_name
       FROM product_badges pb
-      JOIN product_badge_mapping pbm ON pb.badge_id = pbm.badge_id
-      WHERE pbm.product_id = $1
+      WHERE pb.badge_id = (SELECT badge_id FROM products WHERE product_id = $1)
     `, [productId]);
     return result.rows;
   }
@@ -37,9 +36,7 @@ class Product {
   // Add badge to product
   static async addBadge(productId, badgeId) {
     const result = await pool.query(`
-      INSERT INTO product_badge_mapping (product_id, badge_id) 
-      VALUES ($1, $2) 
-      ON CONFLICT (product_id, badge_id) DO NOTHING
+      UPDATE products SET badge_id = $2 WHERE product_id = $1
       RETURNING *
     `, [productId, badgeId]);
     return result.rows[0];
@@ -48,10 +45,9 @@ class Product {
   // Remove badge from product
   static async removeBadge(productId, badgeId) {
     const result = await pool.query(`
-      DELETE FROM product_badge_mapping 
-      WHERE product_id = $1 AND badge_id = $2 
+      UPDATE products SET badge_id = NULL WHERE product_id = $1
       RETURNING *
-    `, [productId, badgeId]);
+    `, [productId]);
     return result.rows[0];
   }
 }
