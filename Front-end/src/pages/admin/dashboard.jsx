@@ -52,8 +52,8 @@ import AddProduct from "../../components/admin/AddProduct";
 import Pending from '../../components/admin/Pending';
 import InTransit from '../../components/admin/InTransit';
 import Delivered from '../../components/admin/Delivered';
-// import BrandList from './BrandList';
-// import AddBrand from './AddBrand';
+import OrderAcceptance from "../../components/admin/OrderAcceptance";
+import OrderList from "../../components/admin/OrderList";
 import Notification from "../../components/admin/Notification";
 // import ProductList from './ProductList';
 // import AddProduct from './AddProduct';
@@ -97,7 +97,8 @@ const Dashboard = () => {
       "Product Size": <ProductSize />,
       "Product Badge": <ProductBadge />,
       "Badges on Product": <BadgesOnProduct />,
-      "Order List": <AdminOrders />,
+      "Order List": <OrderList />,
+      "Orders Management": <OrderAcceptance />,
       "Order Details": <OrderDetails />,
       "Inventory": <Inventory />,
       "Transactions": <Transactions />,
@@ -161,7 +162,8 @@ const Dashboard = () => {
       title: "Orders",
       icon: <ShoppingCart size={20} />,
       submenu: true,
-      submenuItems: ["Order List", 
+      submenuItems: ["Orders Management", 
+        "Order List", 
         "Order Details", 
         "Transactions"],
     },
