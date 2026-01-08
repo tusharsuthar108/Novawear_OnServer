@@ -189,11 +189,28 @@ CREATE TABLE cart_items (
 CREATE TABLE orders (
     order_id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(user_id),
+    status_id INT REFERENCES order_status(status_id),
     total_amount NUMERIC(10,2),
-    order_status VARCHAR(30),
     payment_status VARCHAR(30),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE order_status (
+    status_id SERIAL PRIMARY KEY,
+    status_name VARCHAR(30) UNIQUE NOT NULL
+);
+
+
+INSERT INTO order_status (status_name) VALUES
+('Pending'),
+('Confirmed'),
+('Packed'),
+('Shipped'),
+('In Transit'),
+('Out for Delivery'),
+('Delivered'),
+('Cancelled')
+ON CONFLICT (status_name) DO NOTHING;
 
 CREATE TABLE order_items (
     order_item_id SERIAL PRIMARY KEY,

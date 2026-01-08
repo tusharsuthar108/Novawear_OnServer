@@ -1,89 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CheckCircle, X, Clock, Eye, Package, 
   User, Phone, MapPin, CreditCard, Calendar, ChevronDown, ChevronUp
 } from 'lucide-react';
+import { orderService } from '../../services/orderService';
 
 const OrderAcceptance = () => {
   const [expandedOrder, setExpandedOrder] = useState(null);
-  const [orders, setOrders] = useState([
-    {
-      id: '#NW-2024-001',
-      customerName: 'John Smith',
-      customerEmail: 'john.smith@email.com',
-      customerPhone: '+1 (555) 123-4567',
-      date: 'Dec 15, 2024',
-      total: '₹4,998',
-      items: [
-        { 
-          name: 'ARCHITECTURAL OVERSIZED TEE', 
-          size: 'L', 
-          color: 'Black', 
-          qty: 2, 
-          price: '₹2,499', 
-          image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100' 
-        }
-      ],
-      status: 'pending',
-      address: '123 Tech Lane, Silicon Valley, CA 94043',
-      shippingAddress: {
-        street: '123 Tech Lane',
-        city: 'Silicon Valley',
-        state: 'CA',
-        zip: '94043',
-        country: 'USA'
-      },
-      paymentMethod: 'Credit Card ****1234'
-    },
-    {
-      id: '#NW-2024-002',
-      customerName: 'Sarah Johnson',
-      customerEmail: 'sarah.j@email.com',
-      customerPhone: '+1 (555) 987-6543',
-      date: 'Dec 14, 2024',
-      total: '₹7,497',
-      items: [
-        { 
-          name: 'PREMIUM HOODIE', 
-          size: 'XL', 
-          color: 'Navy', 
-          qty: 1, 
-          price: '₹3,999', 
-          image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=100' 
-        }
-      ],
-      status: 'pending',
-      address: '456 Fashion Ave, New York, NY 10001',
-      shippingAddress: {
-        street: '456 Fashion Ave',
-        city: 'New York',
-        state: 'NY',
-        zip: '10001',
-        country: 'USA'
-      },
-      paymentMethod: 'UPI Payment'
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchPendingOrders();
+  }, []);
+
+  const fetchPendingOrders = async () => {
+    try {
+      setLoading(true);
+      const data = await orderService.getPendingOrders();
+      setOrders(data);
+    } catch (err) {
+      setError('Failed to fetch orders');
+    } finally {
+      setLoading(false);
     }
-  ]);
-
-  const handleViewDetails = (orderId) => {
-    setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
-  const handleAccept = (orderId) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, status: 'accepted' } : order
-    ));
+  const handleViewDetails = async (orderId) => {
+    if (expandedOrder === orderId) {
+      setExpandedOrder(null);
+      return;
+    }
+    
+    try {
+      const orderDetails = await orderService.getOrderDetails(orderId);
+      setOrders(orders.map(order => 
+        order.order_id === orderId ? { ...order, ...orderDetails } : order
+      ));
+      setExpandedOrder(orderId);
+    } catch (err) {
+      setError('Failed to fetch order details');
+    }
   };
 
-  const handleReject = (orderId) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, status: 'rejected' } : order
-    ));
+  const handleAccept = async (orderId) => {
+    try {
+      await orderService.updateOrderStatus(orderId, 2);
+      setOrders(orders.map(order => 
+        order.order_id === orderId ? { ...order, status_id: 2, status_name: 'Confirmed' } : order
+      ));
+    } catch (err) {
+      setError('Failed to accept order');
+    }
   };
 
-  const pendingOrders = orders.filter(order => order.status === 'pending');
-  const acceptedOrders = orders.filter(order => order.status === 'accepted');
-  const rejectedOrders = orders.filter(order => order.status === 'rejected');
+  const handleReject = async (orderId) => {
+    try {
+      await orderService.updateOrderStatus(orderId, 8);
+      setOrders(orders.map(order => 
+        order.order_id === orderId ? { ...order, status_id: 8, status_name: 'Cancelled' } : order
+      ));
+    } catch (err) {
+      setError('Failed to reject order');
+    }
+  };
+
+  const pendingOrders = orders.filter(order => order.status_id === 1);
+  const acceptedOrders = orders.filter(order => order.status_id === 2);
+  const rejectedOrders = orders.filter(order => order.status_id === 8);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+        <p className="text-red-600">{error}</p>
+        <button 
+          onClick={fetchPendingOrders}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -99,70 +106,78 @@ const OrderAcceptance = () => {
 
       <div className="grid gap-4">
         {pendingOrders.map((order) => (
-          <div key={order.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <div key={order.order_id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="font-bold text-slate-800 text-lg">{order.id}</h3>
-                <p className="text-slate-500 text-sm">{order.date}</p>
+                <h3 className="font-bold text-slate-800 text-lg">#NW-{order.order_id}</h3>
+                <p className="text-slate-500 text-sm">{new Date(order.created_at).toLocaleDateString()}</p>
               </div>
               <div className="text-right">
-                <p className="font-bold text-slate-800 text-lg">{order.total}</p>
-                <p className="text-slate-500 text-sm">{order.items.length} items</p>
+                <p className="font-bold text-slate-800 text-lg">₹{order.total_amount.toLocaleString()}</p>
+                <p className="text-slate-500 text-sm">{order.items?.length || 0} items</p>
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4 mb-6">
               <div className="flex items-center gap-3">
                 <User className="text-slate-400" size={18} />
-                <span className="text-slate-700">{order.customerName}</span>
+                <span className="text-slate-700">{order.customer_name}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="text-slate-400" size={18} />
-                <span className="text-slate-700">{order.customerPhone}</span>
+                <span className="text-slate-700">{order.customer_phone}</span>
               </div>
               <div className="flex items-center gap-3 md:col-span-2">
                 <MapPin className="text-slate-400" size={18} />
-                <span className="text-slate-700">{order.address}</span>
+                <span className="text-slate-700">
+                  {order.address_line1}, {order.city}, {order.state} {order.pincode}
+                </span>
               </div>
             </div>
 
             <div className="flex gap-3">
               <button
-                onClick={() => handleAccept(order.id)}
+                onClick={() => handleAccept(order.order_id)}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 <CheckCircle size={18} />
                 Accept Order
               </button>
               <button
-                onClick={() => handleReject(order.id)}
+                onClick={() => handleReject(order.order_id)}
                 className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 <X size={18} />
                 Reject Order
               </button>
               <button 
-                onClick={() => handleViewDetails(order.id)}
+                onClick={() => handleViewDetails(order.order_id)}
                 className="flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
               >
                 <Eye size={18} />
-                {expandedOrder === order.id ? 'Hide Details' : 'View Details'}
-                {expandedOrder === order.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {expandedOrder === order.order_id ? 'Hide Details' : 'View Details'}
+                {expandedOrder === order.order_id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </button>
             </div>
 
             {/* Expanded Order Details */}
-            {expandedOrder === order.id && (
+            {expandedOrder === order.order_id && order.items && (
               <div className="mt-6 pt-6 border-t border-slate-200">
                 <h4 className="font-semibold text-slate-800 mb-4">Order Items</h4>
                 <div className="space-y-3">
                   {order.items.map((item, index) => (
                     <div key={index} className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
-                      <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                      <img 
+                        src={item.image_url || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100'} 
+                        alt={item.product_name} 
+                        className="w-16 h-16 object-cover rounded-lg" 
+                      />
                       <div className="flex-1">
-                        <h5 className="font-medium text-slate-800">{item.name}</h5>
-                        <p className="text-sm text-slate-500">Size: {item.size} | Color: {item.color}</p>
-                        <p className="text-sm text-slate-600">Qty: {item.qty} × {item.price}</p>
+                        <h5 className="font-medium text-slate-800">{item.product_name}</h5>
+                        <p className="text-sm text-slate-500">
+                          Size: {item.size_name || 'N/A'} | Color: {item.color_name || 'N/A'}
+                        </p>
+                        <p className="text-sm text-slate-600">Qty: {item.quantity} × ₹{item.price}</p>
                       </div>
                     </div>
                   ))}
@@ -172,14 +187,15 @@ const OrderAcceptance = () => {
                   <div>
                     <h5 className="font-medium text-slate-800 mb-2">Shipping Address</h5>
                     <p className="text-sm text-slate-600">
-                      {order.shippingAddress.street}<br/>
-                      {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zip}<br/>
-                      {order.shippingAddress.country}
+                      {order.address_line1}<br/>
+                      {order.city}, {order.state} {order.pincode}<br/>
+                      {order.country}
                     </p>
                   </div>
                   <div>
                     <h5 className="font-medium text-slate-800 mb-2">Payment Method</h5>
-                    <p className="text-sm text-slate-600">{order.paymentMethod}</p>
+                    <p className="text-sm text-slate-600">{order.payment_method || 'N/A'}</p>
+                    <p className="text-sm text-slate-500">Status: {order.payment_status}</p>
                   </div>
                 </div>
               </div>
@@ -202,14 +218,14 @@ const OrderAcceptance = () => {
           <h3 className="text-lg font-semibold text-slate-800 mb-4">Accepted Orders</h3>
           <div className="grid gap-4">
             {acceptedOrders.map((order) => (
-              <div key={order.id} className="bg-green-50 border border-green-200 rounded-xl p-6">
+              <div key={order.order_id} className="bg-green-50 border border-green-200 rounded-xl p-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="font-bold text-slate-800">{order.id}</h4>
-                    <p className="text-slate-600">{order.customerName} - {order.total}</p>
+                    <h4 className="font-bold text-slate-800">#NW-{order.order_id}</h4>
+                    <p className="text-slate-600">{order.customer_name} - ₹{order.total_amount.toLocaleString()}</p>
                   </div>
                   <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                    Accepted
+                    Confirmed
                   </span>
                 </div>
               </div>
@@ -224,14 +240,14 @@ const OrderAcceptance = () => {
           <h3 className="text-lg font-semibold text-slate-800 mb-4">Rejected Orders</h3>
           <div className="grid gap-4">
             {rejectedOrders.map((order) => (
-              <div key={order.id} className="bg-red-50 border border-red-200 rounded-xl p-6">
+              <div key={order.order_id} className="bg-red-50 border border-red-200 rounded-xl p-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="font-bold text-slate-800">{order.id}</h4>
-                    <p className="text-slate-600">{order.customerName} - {order.total}</p>
+                    <h4 className="font-bold text-slate-800">#NW-{order.order_id}</h4>
+                    <p className="text-slate-600">{order.customer_name} - ₹{order.total_amount.toLocaleString()}</p>
                   </div>
                   <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
-                    Rejected
+                    Cancelled
                   </span>
                 </div>
               </div>
