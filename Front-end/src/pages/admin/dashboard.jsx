@@ -49,15 +49,12 @@ import ProductList from "../../components/admin/ProductList";
 import BrandList from '../../components/admin/BrandList';
 import AddBrand from '../../components/admin/AddBrand';
 import AddProduct from "../../components/admin/AddProduct";
-<<<<<<< HEAD
 import Pending from '../../components/admin/Pending';
 import InTransit from '../../components/admin/InTransit';
 import Delivered from '../../components/admin/Delivered';
 // import BrandList from './BrandList';
 // import AddBrand from './AddBrand';
-=======
 import Notification from "../../components/admin/Notification";
->>>>>>> d91227e63da5391881177ba21d8bebdf26beeb31
 // import ProductList from './ProductList';
 // import AddProduct from './AddProduct';
 // import PriceList from './PriceList';
@@ -112,7 +109,6 @@ const Dashboard = () => {
       "Brand List": <BrandList />,
       "Add Brand": <AddBrand />,
       "Add Product": <AddProduct />,
-<<<<<<< HEAD
       "Pending": <Pending />,
       "In Transit": <InTransit />,
       "Delivered": <Delivered />,
@@ -120,8 +116,6 @@ const Dashboard = () => {
       // "Add Brand": <AddBrand />,
       // "Product List": <ProductList />,
       // "Add Product": <AddProduct />,
-=======
->>>>>>> d91227e63da5391881177ba21d8bebdf26beeb31
       // "Price List": <PriceList />,
       // "Order List": <OrderList />,
       // "Order Details": <OrderDetails />,

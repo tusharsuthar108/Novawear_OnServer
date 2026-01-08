@@ -643,15 +643,6 @@ try {
   console.error('❌ Failed to load pattern routes:', error.message);
 }
 
-<<<<<<< HEAD
-// Import and use shipment routes
-try {
-  const shipmentRoutes = require('./src/routes/shipment.routes');
-  app.use('/api/shipments', shipmentRoutes);
-  console.log('✅ Shipment routes loaded');
-} catch (error) {
-  console.error('❌ Failed to load shipment routes:', error.message);
-=======
 // Import and use User routes
 try {
   const userRoutes = require('./src/routes/user.routes');
@@ -659,7 +650,6 @@ try {
   console.log('✅ User routes loaded');
 } catch (error) {
   console.error('❌ Failed to load user routes:', error.message);
->>>>>>> d91227e63da5391881177ba21d8bebdf26beeb31
 }
 
 // Register Product routes
