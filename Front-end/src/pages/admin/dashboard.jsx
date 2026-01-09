@@ -52,8 +52,27 @@ import AddProduct from "../../components/admin/AddProduct";
 import Pending from '../../components/admin/Pending';
 import InTransit from '../../components/admin/InTransit';
 import Delivered from '../../components/admin/Delivered';
+<<<<<<< HEAD
 import Notification from "../../components/admin/Notification";
 import DashboardUi from "../../components/DashboardUi";
+=======
+import OrderAcceptance from "../../components/admin/OrderAcceptance";
+import OrderList from "../../components/admin/OrderList";
+import Notification from "../../components/admin/Notification";
+// import ProductList from './ProductList';
+// import AddProduct from './AddProduct';
+// import PriceList from './PriceList';
+// import OrderList from './OrderList';
+// import OrderDetails from './OrderDetails';
+// import StockLevels from './StockLevels';
+// import Warehouse from './Warehouse';
+// import Adjustments from './Adjustments';
+// import Pending from './Pending';
+// import InTransit from './InTransit';
+// import Delivered from './Delivered';
+// import NewProduct from './NewProduct';
+// import Management from './Management';
+>>>>>>> 79b0aa99ded747e2280a96112cf5a92f938b49f4
 
 const Dashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -75,7 +94,8 @@ const Dashboard = () => {
       "Product Size": <ProductSize />,
       "Product Badge": <ProductBadge />,
       "Badges on Product": <BadgesOnProduct />,
-      "Order List": <AdminOrders />,
+      "Order List": <OrderList />,
+      "Orders Management": <OrderAcceptance />,
       "Order Details": <OrderDetails />,
       "Inventory": <Inventory />,
       "Transactions": <Transactions />,
@@ -90,6 +110,24 @@ const Dashboard = () => {
       "Pending": <Pending />,
       "In Transit": <InTransit />,
       "Delivered": <Delivered />,
+<<<<<<< HEAD
+=======
+      // "Brand List": <BrandList />,
+      // "Add Brand": <AddBrand />,
+      // "Product List": <ProductList />,
+      // "Add Product": <AddProduct />,
+      // "Price List": <PriceList />,
+      // "Order List": <OrderList />,
+      // "Order Details": <OrderDetails />,
+      // "Stock Levels": <StockLevels />,
+      // "Warehouse": <Warehouse />,
+      // "Adjustments": <Adjustments />,
+      // "Pending": <Pending />,
+      // "In Transit": <InTransit />,
+      // "Delivered": <Delivered />,
+      // "New Product": <NewProduct />,
+      // "Management": <Management />
+>>>>>>> 79b0aa99ded747e2280a96112cf5a92f938b49f4
     };
     return components[itemName] || <DashboardUi />;
   };
@@ -124,7 +162,8 @@ const Dashboard = () => {
       title: "Orders",
       icon: <ShoppingCart size={20} />,
       submenu: true,
-      submenuItems: ["Order List", 
+      submenuItems: ["Orders Management", 
+        "Order List", 
         "Order Details", 
         "Transactions"],
     },

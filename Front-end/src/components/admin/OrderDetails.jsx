@@ -1,285 +1,252 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
-  ArrowLeft, CheckCircle, Clock, Package, Truck, 
-  Calendar, CreditCard, User, MapPin, Phone, Mail,
-  Download, Edit, MoreHorizontal
+  ArrowLeft, Package, User, Phone, Mail, MapPin, Calendar, 
+  DollarSign, Truck, CheckCircle, Clock, CreditCard, Star
 } from 'lucide-react';
 
 const OrderDetails = ({ order, onBack }) => {
-  const [activeStep, setActiveStep] = useState(2);
-
-  const progressSteps = [
-    { id: 1, name: 'Payment Complited', status: 'completed' },
-    { id: 2, name: 'Order Confirming', status: 'active' },
-    { id: 3, name: 'Processing', status: 'pending' },
-    { id: 4, name: 'Shipping', status: 'pending' },
-    { id: 5, name: 'Delivered', status: 'pending' }
-  ];
-
-  const orderItems = [
-    {
-      name: 'Men Black Slim Fit T-shirt',
-      size: 'M',
-      status: 'Ready',
-      quantity: 1,
-      price: 80.00,
-      tax: 3.00,
-      amount: 83.00,
-      statusColor: 'bg-green-100 text-green-700'
-    },
-    {
-      name: 'Dark Green Cargo Pent',
-      size: 'M',
-      status: 'Packaging',
-      quantity: 3,
-      price: 330.00,
-      tax: 4.00,
-      amount: 334.00,
-      statusColor: 'bg-blue-100 text-blue-700'
-    },
-    {
-      name: 'Men Dark Brown Wallet',
-      size: 'S',
-      status: 'Ready',
-      quantity: 1,
-      price: 132.00,
-      tax: 5.00,
-      amount: 137.00,
-      statusColor: 'bg-green-100 text-green-700'
-    },
-    {
-      name: "Kid's Yellow T-shirt",
-      size: 'S',
-      status: 'Packaging',
-      quantity: 2,
-      price: 220.00,
-      tax: 3.00,
-      amount: 223.00,
-      statusColor: 'bg-blue-100 text-blue-700'
-    }
-  ];
-
-  const timeline = [
-    {
-      title: 'The packing has been started',
-      subtitle: 'Confirmed by Gaston Lapierre',
-      time: 'April 23, 2024, 09:40 am',
-      icon: Package,
-      color: 'bg-blue-500'
-    },
-    {
-      title: 'The Invoice has been sent to the customer',
-      subtitle: 'Invoice email was sent to hello@dundermuffilin.com',
-      time: 'April 23, 2024, 09:40 am',
-      icon: Mail,
-      color: 'bg-green-500'
-    },
-    {
-      title: 'The Invoice has been created',
-      subtitle: 'Invoice created by Gaston Lapierre',
-      time: 'April 23, 2024, 09:40 am',
-      icon: CheckCircle,
-      color: 'bg-purple-500'
-    }
-  ];
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <button 
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <Package className="mx-auto text-slate-300 mb-4" size={48} />
+          <h3 className="text-lg font-semibold text-slate-600 mb-2">Order not found</h3>
+          <button
             onClick={onBack}
-            className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium mb-4"
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
-            <ArrowLeft size={16} />
-            Back to Orders
-          </button>
-          
-          {/* Order Header Info */}
-          <div className="flex items-center gap-4 mb-2">
-            <h1 className="text-2xl font-bold text-slate-800">#0758267/90</h1>
-            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-              Paid
-            </span>
-            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-              In Progress
-            </span>
-          </div>
-          
-          <nav className="text-sm text-slate-500">
-            Order / Order Details / <span className="text-slate-800 font-medium">#0758267/90 - April 23, 2024 at 6:23 pm</span>
-          </nav>
-        </div>
-        
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors">
-            <Download size={16} />
-            Download Invoice
-          </button>
-          <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-            <Edit size={16} />
-            Update Status
+            Go Back
           </button>
         </div>
       </div>
+    );
+  }
+  // Mock detailed order data
+  const orderDetails = {
+    ...order,
+    shippingAddress: {
+      street: '123 Main Street',
+      city: 'New York',
+      state: 'NY',
+      zipCode: '10001',
+      country: 'United States'
+    },
+    billingAddress: {
+      street: '123 Main Street',
+      city: 'New York', 
+      state: 'NY',
+      zipCode: '10001',
+      country: 'United States'
+    },
+    orderItems: [
+      {
+        id: 1,
+        name: 'Premium Cotton T-Shirt',
+        image: '/api/placeholder/80/80',
+        size: 'L',
+        color: 'Navy Blue',
+        quantity: 1,
+        price: '₹2,499',
+        total: '₹2,499'
+      },
+      {
+        id: 2,
+        name: 'Casual Denim Jeans',
+        image: '/api/placeholder/80/80',
+        size: '32',
+        color: 'Dark Blue',
+        quantity: 1,
+        price: '₹2,499',
+        total: '₹2,499'
+      }
+    ],
+    timeline: [
+      { status: 'Order Placed', date: 'Dec 15, 2024 10:30 AM', completed: true },
+      { status: 'Payment Confirmed', date: 'Dec 15, 2024 10:32 AM', completed: true },
+      { status: 'Processing', date: 'Dec 15, 2024 2:15 PM', completed: order?.status !== 'Processing' },
+      { status: 'Shipped', date: order?.status === 'Shipped' || order?.status === 'Delivered' ? 'Dec 16, 2024 9:00 AM' : '', completed: order?.status === 'Shipped' || order?.status === 'Delivered' },
+      { status: 'Delivered', date: order?.status === 'Delivered' ? 'Dec 18, 2024 3:45 PM' : '', completed: order?.status === 'Delivered' }
+    ]
+  };
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Progress Section */}
-          <div className="bg-white rounded-lg border border-slate-200 p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-6">Progress</h3>
-            
-            <div className="relative mb-8 px-5">
-              <div className="flex justify-between items-center">
-                {progressSteps.map((step, index) => (
-                  <div key={step.id} className="flex flex-col items-center relative z-10">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                      step.status === 'completed' 
-                        ? 'bg-green-500 text-white' 
-                        : step.status === 'active'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-slate-200 text-slate-500'
-                    }`}>
-                      {step.status === 'completed' ? <CheckCircle size={16} /> : step.id}
-                    </div>
-                    <span className={`text-xs mt-2 text-center max-w-[80px] ${
-                      step.status === 'active' ? 'text-blue-600 font-medium' : 'text-slate-500'
-                    }`}>
-                      {step.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Progress Line */}
-              <div className="absolute top-5 left-10 right-10 h-0.5 bg-slate-200 z-0">
-                <div className="h-full bg-green-500" style={{ width: '25%' }}></div>
-              </div>
-            </div>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-700">
-                <span className="font-medium">Estimated shipping date:</span> Apr 25, 2024
-              </p>
-            </div>
-          </div>
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'Processing': return <Clock className="text-yellow-600" size={20} />;
+      case 'Shipped': return <Truck className="text-blue-600" size={20} />;
+      case 'Delivered': return <CheckCircle className="text-green-600" size={20} />;
+      case 'Cancelled': return <Package className="text-red-600" size={20} />;
+      default: return <Package className="text-gray-600" size={20} />;
+    }
+  };
 
-          {/* Products Table */}
-          <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-800">Product</h3>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Product Name & Size</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Quantity</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Tax</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">Amount</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {orderItems.map((item, index) => (
-                    <tr key={index} className="hover:bg-slate-50">
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="font-medium text-slate-800">{item.name}</div>
-                          <div className="text-sm text-slate-500">Size: {item.size}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.statusColor}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-slate-800">{item.quantity}</td>
-                      <td className="px-6 py-4 text-slate-800">${item.price.toFixed(2)}</td>
-                      <td className="px-6 py-4 text-slate-800">${item.tax.toFixed(2)}</td>
-                      <td className="px-6 py-4 font-medium text-slate-800">${item.amount.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Order Timeline */}
-          <div className="bg-white rounded-lg border border-slate-200 p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-6">Order Timeline</h3>
-            
-            <div className="space-y-6">
-              {timeline.map((event, index) => (
-                <div key={index} className="flex gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${event.color} text-white shrink-0`}>
-                    <event.icon size={16} />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-slate-800">{event.title}</h4>
-                    <p className="text-sm text-slate-500">{event.subtitle}</p>
-                    <p className="text-xs text-slate-400 mt-1">{event.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onBack}
+            className="p-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl hover:bg-white transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            <ArrowLeft size={20} className="text-slate-600" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              Order Details
+            </h1>
+            <p className="text-slate-600">Order {order?.id}</p>
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Order Payment */}
-          <div className="bg-white rounded-lg border border-slate-200 p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Order Payment</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-slate-500">Using Master Card</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm font-medium">Status:</span>
-                  <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">Paid</span>
-                </div>
-                <p className="text-xs text-slate-400 mt-1">April 23, 2024, 09:40 am</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Order Items */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
+                <Package className="text-indigo-600" size={24} />
+                Order Items
+              </h2>
+              <div className="space-y-4">
+                {orderDetails.orderItems.map((item) => (
+                  <div key={item.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
+                    <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center">
+                      <Package className="text-indigo-600" size={32} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-slate-800">{item.name}</h3>
+                      <div className="text-sm text-slate-600 mt-1">
+                        <span>Size: {item.size}</span> • <span>Color: {item.color}</span>
+                      </div>
+                      <div className="text-sm text-slate-500 mt-1">Qty: {item.quantity}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-slate-800">{item.total}</div>
+                      <div className="text-sm text-slate-500">{item.price} each</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              
-              <div className="border-t border-slate-200 pt-4">
-                <p className="text-sm font-medium text-slate-800 mb-2">4 Order conform by Gaston Lapierre</p>
-                <div className="flex gap-2 mb-2">
-                  {[1, 2, 3, 4].map((num) => (
-                    <span key={num} className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs">
-                      Order {num}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-xs text-slate-400">April 23, 2024, 09:40 am</p>
+            </div>
+
+            {/* Order Timeline */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
+                <Clock className="text-indigo-600" size={24} />
+                Order Timeline
+              </h2>
+              <div className="space-y-4">
+                {orderDetails.timeline.map((step, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      step.completed ? 'bg-green-100 border-2 border-green-500' : 'bg-slate-100 border-2 border-slate-300'
+                    }`}>
+                      {step.completed ? (
+                        <CheckCircle className="text-green-600" size={20} />
+                      ) : (
+                        <Clock className="text-slate-400" size={20} />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className={`font-medium ${step.completed ? 'text-slate-800' : 'text-slate-500'}`}>
+                        {step.status}
+                      </div>
+                      {step.date && (
+                        <div className="text-sm text-slate-500">{step.date}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Vendor Info */}
-          <div className="bg-white rounded-lg border border-slate-200 p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Vendor</h3>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-500">Vendor</span>
-                <span className="text-sm font-medium text-slate-800">Catpiller</span>
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Order Summary */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
+                {getStatusIcon(order?.status)}
+                Order Summary
+              </h2>
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Order ID</span>
+                  <span className="font-semibold text-slate-800">{order?.id}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Order Date</span>
+                  <span className="font-semibold text-slate-800">{order?.date}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Status</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    order?.status === 'Processing' ? 'bg-yellow-100 text-yellow-700' :
+                    order?.status === 'Shipped' ? 'bg-blue-100 text-blue-700' :
+                    order?.status === 'Delivered' ? 'bg-green-100 text-green-700' :
+                    order?.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                    'bg-slate-100 text-slate-700'
+                  }`}>
+                    {order?.status}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Payment Status</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    order?.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' :
+                    order?.paymentStatus === 'Refunded' ? 'bg-orange-100 text-orange-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    {order?.paymentStatus}
+                  </span>
+                </div>
+                <hr className="border-slate-200" />
+                <div className="flex justify-between text-lg font-semibold">
+                  <span className="text-slate-800">Total</span>
+                  <span className="text-slate-800">{order?.total}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-500">Date</span>
-                <span className="text-sm font-medium text-slate-800">April 23, 2024</span>
+            </div>
+
+            {/* Customer Information */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
+                <User className="text-indigo-600" size={24} />
+                Customer Info
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    {order?.customerName?.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-800">{order?.customerName}</div>
+                    <div className="text-sm text-slate-500">Customer</div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Mail className="text-slate-400" size={16} />
+                    <span className="text-slate-600">{order?.customerEmail}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone className="text-slate-400" size={16} />
+                    <span className="text-slate-600">{order?.customerPhone}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-500">Paid By</span>
-                <span className="text-sm font-medium text-slate-800">Gaston Lapierre</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-500">Reference #IMEMO</span>
-                <span className="text-sm font-medium text-slate-800">#0758267/90</span>
+            </div>
+
+            {/* Shipping Address */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
+                <MapPin className="text-indigo-600" size={24} />
+                Shipping Address
+              </h2>
+              <div className="text-slate-600 space-y-1">
+                <div>{orderDetails.shippingAddress.street}</div>
+                <div>{orderDetails.shippingAddress.city}, {orderDetails.shippingAddress.state} {orderDetails.shippingAddress.zipCode}</div>
+                <div>{orderDetails.shippingAddress.country}</div>
               </div>
             </div>
           </div>

@@ -1,21 +1,39 @@
-import React, { useState } from 'react';
-import { Search, Eye, CreditCard, ArrowLeft, Printer } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Search, Eye, CreditCard, ArrowLeft, Printer, DollarSign, Clock, CheckCircle } from 'lucide-react';
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([
-    { id: '#479063DR', method: 'MasterCard', amount: 1520.54, date: 'Jan 21, 2023 08:30 AM', status: 'Paid' },
-    { id: '#94267415', method: 'Visa', amount: 2145.00, date: 'Jan 25, 2023 10:25 PM', status: 'Pending' },
-    { id: '#36675705', method: 'PayPal', amount: 1520.54, date: 'Jan 29, 2023 12:05 PM', status: 'Paid' },
-    { id: '#11686375', method: 'AmericanExpress', amount: 119.99, date: 'Feb 05, 2023 07:02 AM', status: 'Declined' },
-    { id: '#88812234', method: 'PayPal', amount: 1520.54, date: 'Jan 29, 2023 12:05 PM', status: 'Paid' },
-    { id: '#19168064', method: 'MasterCard', amount: 1520.54, date: 'Jan 21, 2023 08:30 AM', status: 'Paid' },
-    { id: '#07081582', method: 'AmericanExpress', amount: 119.99, date: 'Feb 05, 2023 07:02 AM', status: 'Declined' },
-    { id: '#79359901', method: 'Visa', amount: 2145.00, date: 'Jan 25, 2023 10:25 PM', status: 'Pending' }
+    { id: '#TXN001', productName: 'Nike Air Max 270', customerName: 'John Smith', method: 'MasterCard', amount: 129.99, date: 'Jan 21, 2024 08:30 AM', status: 'Paid', orderId: '#ORD001' },
+    { id: '#TXN002', productName: 'Adidas Ultraboost 22', customerName: 'Sarah Johnson', method: 'Visa', amount: 189.99, date: 'Jan 22, 2024 10:25 AM', status: 'Pending', orderId: '#ORD002' },
+    { id: '#TXN003', productName: 'Levi\'s 501 Jeans', customerName: 'Mike Wilson', method: 'PayPal', amount: 79.99, date: 'Jan 23, 2024 02:15 PM', status: 'Paid', orderId: '#ORD003' },
+    { id: '#TXN004', productName: 'Calvin Klein T-Shirt', customerName: 'Emma Davis', method: 'AmericanExpress', amount: 39.99, date: 'Jan 24, 2024 11:45 AM', status: 'Declined', orderId: '#ORD004' },
+    { id: '#TXN005', productName: 'Tommy Hilfiger Polo', customerName: 'David Brown', method: 'MasterCard', amount: 89.99, date: 'Jan 25, 2024 09:20 AM', status: 'Paid', orderId: '#ORD005' },
+    { id: '#TXN006', productName: 'Zara Blazer', customerName: 'Lisa Garcia', method: 'Visa', amount: 149.99, date: 'Jan 26, 2024 03:30 PM', status: 'Paid', orderId: '#ORD006' },
+    { id: '#TXN007', productName: 'H&M Hoodie', customerName: 'Chris Martinez', method: 'PayPal', amount: 49.99, date: 'Jan 27, 2024 07:15 PM', status: 'Pending', orderId: '#ORD007' },
+    { id: '#TXN008', productName: 'Puma Running Shoes', customerName: 'Anna Taylor', method: 'MasterCard', amount: 119.99, date: 'Jan 28, 2024 12:00 PM', status: 'Paid', orderId: '#ORD008' },
+    { id: '#TXN009', productName: 'Gap Chinos', customerName: 'Robert Lee', method: 'Visa', amount: 69.99, date: 'Jan 29, 2024 04:45 PM', status: 'Declined', orderId: '#ORD009' },
+    { id: '#TXN010', productName: 'Under Armour Jacket', customerName: 'Jennifer White', method: 'AmericanExpress', amount: 199.99, date: 'Jan 30, 2024 01:20 PM', status: 'Paid', orderId: '#ORD010' },
+    { id: '#TXN011', productName: 'Converse Chuck Taylor', customerName: 'Kevin Anderson', method: 'PayPal', amount: 65.99, date: 'Feb 01, 2024 10:30 AM', status: 'Paid', orderId: '#ORD011' },
+    { id: '#TXN012', productName: 'Ralph Lauren Shirt', customerName: 'Michelle Thomas', method: 'MasterCard', amount: 129.99, date: 'Feb 02, 2024 02:45 PM', status: 'Pending', orderId: '#ORD012' }
   ]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+
+  const stats = useMemo(() => {
+    const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
+    const paidTransactions = transactions.filter(t => t.status === 'Paid');
+    const pendingTransactions = transactions.filter(t => t.status === 'Pending');
+    const successRate = (paidTransactions.length / transactions.length) * 100;
+    
+    return {
+      totalRevenue: totalAmount,
+      totalTransactions: transactions.length,
+      pendingCount: pendingTransactions.length,
+      successRate: successRate
+    };
+  }, [transactions]);
 
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = transaction.id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -74,7 +92,17 @@ const Transactions = () => {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Customer:</label>
-                <p className="text-slate-800">Shahnewaz Sakil</p>
+                <p className="text-slate-800">{selectedTransaction.customerName}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Product:</label>
+                <p className="text-slate-800">{selectedTransaction.productName}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Order ID:</label>
+                <p className="text-slate-800">{selectedTransaction.orderId}</p>
               </div>
 
               <div>
@@ -90,16 +118,17 @@ const Transactions = () => {
 
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Item List:</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Product Details:</label>
                 <div className="space-y-2">
-                  <p className="text-slate-800">1. Whitetails Women's Open Sky (x2)</p>
-                  <p className="text-slate-800">2. Simple Modern School Boys (x5)</p>
+                  <p className="text-slate-800">Product: {selectedTransaction.productName}</p>
+                  <p className="text-slate-800">Quantity: 1</p>
+                  <p className="text-slate-800">Unit Price: ${selectedTransaction.amount}</p>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Total Amount:</label>
-                <p className="text-xl font-bold text-slate-800">Grand Total - $4152.50</p>
+                <p className="text-xl font-bold text-slate-800">Total: ${selectedTransaction.amount}</p>
               </div>
 
               <div>
@@ -119,6 +148,57 @@ const Transactions = () => {
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Transactions</h2>
           <p className="text-slate-500">Manage payment transactions and details</p>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600">Total Revenue</p>
+              <p className="text-2xl font-bold text-slate-800">${stats.totalRevenue.toLocaleString()}</p>
+            </div>
+            <div className="p-3 bg-green-100 rounded-xl">
+              <DollarSign className="text-green-600" size={24} />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600">Total Transactions</p>
+              <p className="text-2xl font-bold text-slate-800">{stats.totalTransactions}</p>
+            </div>
+            <div className="p-3 bg-blue-100 rounded-xl">
+              <CreditCard className="text-blue-600" size={24} />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600">Pending</p>
+              <p className="text-2xl font-bold text-slate-800">{stats.pendingCount}</p>
+            </div>
+            <div className="p-3 bg-yellow-100 rounded-xl">
+              <Clock className="text-yellow-600" size={24} />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600">Success Rate</p>
+              <p className="text-2xl font-bold text-slate-800">{stats.successRate.toFixed(1)}%</p>
+            </div>
+            <div className="p-3 bg-emerald-100 rounded-xl">
+              <CheckCircle className="text-emerald-600" size={24} />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -153,6 +233,8 @@ const Transactions = () => {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Transaction ID</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Product</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Customer</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Method</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Amount</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Date</th>
@@ -165,6 +247,12 @@ const Transactions = () => {
                 <tr key={transaction.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">
                     <span className="font-semibold text-slate-800">{transaction.id}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-slate-800">{transaction.productName}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-slate-800">{transaction.customerName}</span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -189,7 +277,6 @@ const Transactions = () => {
                       className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors"
                     >
                       <Eye size={16} />
-                      View Details
                     </button>
                   </td>
                 </tr>
