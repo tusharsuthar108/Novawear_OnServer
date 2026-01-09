@@ -363,11 +363,7 @@ try {
     console.log('req.file:', req.file);
 
     const { sub_category_id, type_name, slug, is_active } = req.body;
-    let image_url = null;
-    if (req.file) {
-      image_url = `/uploads/product-types/${req.file.filename}`;
-    }
-
+    
     try {
       const pool = require('./src/config/database');
       
@@ -390,8 +386,8 @@ try {
       }
       
       const result = await pool.query(
-        'INSERT INTO product_types (sub_category_id, type_name, slug, image_url, is_active) VALUES ($1,$2,$3,$4,$5) RETURNING *',
-        [sub_category_id, type_name, finalSlug, image_url, is_active === 'true' || is_active === true]
+        'INSERT INTO product_types (sub_category_id, type_name, slug, is_active) VALUES ($1,$2,$3,$4) RETURNING *',
+        [sub_category_id, type_name, finalSlug, is_active === 'true' || is_active === true]
       );
       console.log('Product type created successfully:', result.rows[0]);
       res.status(201).json({ success: true, data: result.rows[0] });
@@ -459,10 +455,10 @@ try {
     try {
       const pool = require('./src/config/database');
       const result = await pool.query('SELECT * FROM brands ORDER BY created_at DESC');
-      res.json(result.rows);
+      res.json({ success: true, data: result.rows });
     } catch (error) {
       console.error('Error fetching brands:', error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, error: error.message });
     }
   });
 
@@ -643,15 +639,6 @@ try {
   console.error('❌ Failed to load pattern routes:', error.message);
 }
 
-<<<<<<< HEAD
-// Import and use shipment routes
-try {
-  const shipmentRoutes = require('./src/routes/shipment.routes');
-  app.use('/api/shipments', shipmentRoutes);
-  console.log('✅ Shipment routes loaded');
-} catch (error) {
-  console.error('❌ Failed to load shipment routes:', error.message);
-=======
 // Import and use User routes
 try {
   const userRoutes = require('./src/routes/user.routes');
@@ -659,7 +646,6 @@ try {
   console.log('✅ User routes loaded');
 } catch (error) {
   console.error('❌ Failed to load user routes:', error.message);
->>>>>>> d91227e63da5391881177ba21d8bebdf26beeb31
 }
 
 // Register Product routes

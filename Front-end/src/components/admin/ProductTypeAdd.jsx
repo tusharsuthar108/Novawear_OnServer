@@ -28,11 +28,16 @@ const ProductTypeAdd = ({ isOpen, onClose, onSave }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('Fetching data for ProductTypeAdd...');
         const [masterRes, categoryRes, subCategoryRes] = await Promise.all([
           masterCategoriesApi.getAll(),
           categoriesApi.getAll(),
           fetchSubCategories()
         ]);
+        
+        console.log('Master categories:', masterRes.data.data || []);
+        console.log('Categories:', categoryRes.data.data || []);
+        console.log('Sub categories:', subCategoryRes.data || []);
         
         setMasterCategories(masterRes.data.data || []);
         setCategories(categoryRes.data.data || []);
@@ -61,8 +66,11 @@ const ProductTypeAdd = ({ isOpen, onClose, onSave }) => {
 
   // Logic: When Parent Category changes, filter Sub-Categories
   useEffect(() => {
+    console.log('Category changed:', formData.categoryId);
+    console.log('Available subcategories:', subCategories);
     if (formData.categoryId) {
       const filtered = subCategories.filter(s => s.category_id === parseInt(formData.categoryId));
+      console.log('Filtered subcategories:', filtered);
       setFilteredSubCategories(filtered);
       // Reset dependent field
       setFormData(prev => ({ ...prev, subCategoryId: '' }));

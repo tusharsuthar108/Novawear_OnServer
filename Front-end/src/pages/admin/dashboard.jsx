@@ -49,47 +49,22 @@ import ProductList from "../../components/admin/ProductList";
 import BrandList from '../../components/admin/BrandList';
 import AddBrand from '../../components/admin/AddBrand';
 import AddProduct from "../../components/admin/AddProduct";
-<<<<<<< HEAD
 import Pending from '../../components/admin/Pending';
 import InTransit from '../../components/admin/InTransit';
 import Delivered from '../../components/admin/Delivered';
-// import BrandList from './BrandList';
-// import AddBrand from './AddBrand';
-=======
 import Notification from "../../components/admin/Notification";
->>>>>>> d91227e63da5391881177ba21d8bebdf26beeb31
-// import ProductList from './ProductList';
-// import AddProduct from './AddProduct';
-// import PriceList from './PriceList';
-// import OrderList from './OrderList';
-// import OrderDetails from './OrderDetails';
-// import StockLevels from './StockLevels';
-// import Warehouse from './Warehouse';
-// import Adjustments from './Adjustments';
-// import Pending from './Pending';
-// import InTransit from './InTransit';
-// import Delivered from './Delivered';
-// import NewProduct from './NewProduct';
-// import Management from './Management';
+import DashboardUi from "../../components/DashboardUi";
 
 const Dashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [openMenus, setOpenMenus] = useState({});
   const [activeItem, setActiveItem] = useState("Dashboard");
-  const [currentComponent, setCurrentComponent] = useState(
-    <div className="bg-white rounded-lg border border-slate-200 p-6">
-      <h1 className="text-2xl font-bold text-slate-900 mb-4">
-        Dashboard Overview
-      </h1>
-      <p className="text-slate-600">
-        Welcome to NovaWear Admin Panel. Select a menu item to get started.
-      </p>
-    </div>
-  );
+  const [currentComponent, setCurrentComponent] = useState("Dashboard");
 
   // Component mapping
   const getComponent = (itemName) => {
     const components = {
+      "Dashboard": <DashboardUi />,
       "Master Category": <MasterCategory />,
       "Category": <Category />,
       "Sub Category": <SubCategory />,
@@ -112,29 +87,11 @@ const Dashboard = () => {
       "Brand List": <BrandList />,
       "Add Brand": <AddBrand />,
       "Add Product": <AddProduct />,
-<<<<<<< HEAD
       "Pending": <Pending />,
       "In Transit": <InTransit />,
       "Delivered": <Delivered />,
-      // "Brand List": <BrandList />,
-      // "Add Brand": <AddBrand />,
-      // "Product List": <ProductList />,
-      // "Add Product": <AddProduct />,
-=======
->>>>>>> d91227e63da5391881177ba21d8bebdf26beeb31
-      // "Price List": <PriceList />,
-      // "Order List": <OrderList />,
-      // "Order Details": <OrderDetails />,
-      // "Stock Levels": <StockLevels />,
-      // "Warehouse": <Warehouse />,
-      // "Adjustments": <Adjustments />,
-      // "Pending": <Pending />,
-      // "In Transit": <InTransit />,
-      // "Delivered": <Delivered />,
-      // "New Product": <NewProduct />,
-      // "Management": <Management />
     };
-    return components[itemName] || null;
+    return components[itemName] || <DashboardUi />;
   };
 
   const toggleSidebar = () => setIsOpen(!isOpen);
@@ -295,7 +252,7 @@ const Dashboard = () => {
 
                     // 3️⃣ For non-submenu items, set the component directly
                     if (!item.submenu) {
-                      setCurrentComponent(getComponent(item.title));
+                      setCurrentComponent(item.title);
                       setOpenMenus({}); // close all submenus
                     } else {
                       // Toggle submenu (open/close) only if sidebar is already open
@@ -358,7 +315,7 @@ const Dashboard = () => {
                         key={i}
                         onClick={() => {
                           setActiveItem(sub);
-                          setCurrentComponent(getComponent(sub));
+                          setCurrentComponent(sub);
                         }}
                         className={`w-full text-left py-2 text-[13px] transition-colors block font-medium ${
                           activeItem === sub
@@ -440,7 +397,7 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <main className="flex-1 p-6">
-          <div key={activeItem}>{currentComponent}</div>
+          <div key={activeItem}>{getComponent(currentComponent)}</div>
         </main>
       </div>
     </div>

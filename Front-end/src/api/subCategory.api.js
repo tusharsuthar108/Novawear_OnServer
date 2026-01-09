@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 const API_URL = `${API_BASE_URL}/api/subcategories`;
 
@@ -9,10 +7,13 @@ const API_URL = `${API_BASE_URL}/api/subcategories`;
  */
 export const fetchSubCategories = async () => {
   try {
-    const response = await axios.get(API_URL);
-    return response.data;
+    const response = await fetch(API_URL);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return await response.json();
   } catch (error) {
-    throw error.response?.data || { error: "Failed to fetch subcategories" };
+    throw { error: "Failed to fetch subcategories" };
   }
 };
 
@@ -33,14 +34,18 @@ export const createSubCategory = async (subCategoryData) => {
       formData.append('image', subCategoryData.imageFile);
     }
 
-    const response = await axios.post(API_URL, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: formData
     });
-    return response.data;
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
   } catch (error) {
-    throw error.response?.data || { error: "Failed to create subcategory" };
+    throw { error: "Failed to create subcategory" };
   }
 };
 
@@ -64,14 +69,18 @@ export const updateSubCategory = async (id, subCategoryData) => {
       formData.append('image', subCategoryData.imageFile);
     }
 
-    const response = await axios.put(`${API_URL}/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: 'PUT',
+      body: formData
     });
-    return response.data;
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
   } catch (error) {
-    throw error.response?.data || { error: "Failed to update subcategory" };
+    throw { error: "Failed to update subcategory" };
   }
 };
 
@@ -81,9 +90,16 @@ export const updateSubCategory = async (id, subCategoryData) => {
  */
 export const deleteSubCategory = async (id) => {
   try {
-    const response = await axios.delete(`${API_URL}/${id}`);
-    return response.data;
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
   } catch (error) {
-    throw error.response?.data || { error: "Failed to delete subcategory" };
+    throw { error: "Failed to delete subcategory" };
   }
 };
