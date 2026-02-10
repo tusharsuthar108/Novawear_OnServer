@@ -65,7 +65,23 @@ app.get('/test-brands', async (req, res) => {
   }
 });
 
-// Products API - Direct route
+// Products API - Direct route (GET must be AFTER specific routes)
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const pool = require('./src/config/database');
+    const { id } = req.params;
+    console.log('DELETE /api/products/' + id);
+    const result = await pool.query('DELETE FROM products WHERE product_id = $1 RETURNING *', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, error: 'Product not found' });
+    }
+    res.json({ success: true, message: 'Product deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.get('/api/products', async (req, res) => {
   try {
     const pool = require('./src/config/database');
@@ -367,6 +383,8 @@ try {
     try {
       const pool = require('./src/config/database');
       
+      const image_url = req.file ? `/uploads/product-types/${req.file.filename}` : null;
+      
       // Check if slug already exists and generate unique one if needed
       let finalSlug = slug;
       let counter = 1;
@@ -386,14 +404,42 @@ try {
       }
       
       const result = await pool.query(
-        'INSERT INTO product_types (sub_category_id, type_name, slug, is_active) VALUES ($1,$2,$3,$4) RETURNING *',
-        [sub_category_id, type_name, finalSlug, is_active === 'true' || is_active === true]
+        'INSERT INTO product_types (sub_category_id, type_name, slug, image_url, is_active) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+        [sub_category_id, type_name, finalSlug, image_url, is_active === 'true' || is_active === true]
       );
       console.log('Product type created successfully:', result.rows[0]);
       res.status(201).json({ success: true, data: result.rows[0] });
     } catch (err) {
       console.error('Database error creating product type:', err.message);
       res.status(400).json({ success: false, error: err.message });
+    }
+  });
+
+  app.put('/api/product-types/:id', upload.single('image'), async (req, res) => {
+    const { id } = req.params;
+    const { sub_category_id, type_name, slug, is_active } = req.body;
+    
+    try {
+      const pool = require('./src/config/database');
+      
+      let image_url = req.body.image_url;
+      if (req.file) {
+        image_url = `/uploads/product-types/${req.file.filename}`;
+      }
+      
+      const result = await pool.query(
+        'UPDATE product_types SET sub_category_id = COALESCE($1, sub_category_id), type_name = COALESCE($2, type_name), slug = COALESCE($3, slug), image_url = COALESCE($4, image_url), is_active = COALESCE($5, is_active) WHERE type_id = $6 RETURNING *',
+        [sub_category_id, type_name, slug, image_url, is_active === 'true' || is_active === true, id]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, error: 'Product type not found' });
+      }
+      
+      res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('PUT error:', error);
+      res.status(500).json({ success: false, error: error.message });
     }
   });
 
@@ -421,134 +467,6 @@ try {
   console.log('✅ Brand routes loaded');
 } catch (error) {
   console.error('❌ Failed to load brand routes:', error.message);
-  
-  // Add brand routes directly as fallback
-  const fs = require('fs');
-  const brandsDir = path.join(__dirname, 'uploads/brands');
-  if (!fs.existsSync(brandsDir)) {
-    fs.mkdirSync(brandsDir, { recursive: true });
-  }
-
-  const brandStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, 'uploads/brands/');
-    },
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, 'brand-' + uniqueSuffix + path.extname(file.originalname));
-    }
-  });
-
-  const brandUpload = multer({
-    storage: brandStorage,
-    fileFilter: (req, file, cb) => {
-      if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Only image files are allowed!'), false);
-      }
-    },
-    limits: { fileSize: 5 * 1024 * 1024 }
-  });
-
-  app.get('/api/brands', async (req, res) => {
-    try {
-      const pool = require('./src/config/database');
-      const result = await pool.query('SELECT * FROM brands ORDER BY created_at DESC');
-      res.json({ success: true, data: result.rows });
-    } catch (error) {
-      console.error('Error fetching brands:', error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  app.post('/api/brands', brandUpload.single('logo'), async (req, res) => {
-    try {
-      const pool = require('./src/config/database');
-      const { brand_name, description, is_active = true } = req.body;
-      const logo_url = req.file ? `/uploads/brands/${req.file.filename}` : null;
-      const brand_slug = brand_name.toLowerCase().replace(/\s+/g, '-');
-
-      const result = await pool.query(
-        'INSERT INTO brands (brand_name, brand_slug, description, logo_url, is_active) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [brand_name, brand_slug, description, logo_url, is_active === 'true' || is_active === true]
-      );
-
-      res.status(201).json(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating brand:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  app.put('/api/brands/:id', brandUpload.single('logo'), async (req, res) => {
-    try {
-      const pool = require('./src/config/database');
-      const { id } = req.params;
-      const { brand_name, description, is_active } = req.body;
-      
-      let logo_url = req.body.logo_url;
-      if (req.file) {
-        logo_url = `/uploads/brands/${req.file.filename}`;
-      }
-
-      const brand_slug = brand_name ? brand_name.toLowerCase().replace(/\s+/g, '-') : undefined;
-
-      const result = await pool.query(
-        'UPDATE brands SET brand_name = COALESCE($1, brand_name), brand_slug = COALESCE($2, brand_slug), description = COALESCE($3, description), logo_url = COALESCE($4, logo_url), is_active = COALESCE($5, is_active) WHERE brand_id = $6 RETURNING *',
-        [brand_name, brand_slug, description, logo_url, is_active === 'true' || is_active === true, id]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Brand not found' });
-      }
-
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error updating brand:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  app.delete('/api/brands/:id', async (req, res) => {
-    const { id } = req.params;
-    console.log('DELETE request for brand ID:', id);
-    
-    try {
-      const pool = require('./src/config/database');
-      
-      // Check if brand is referenced by products and get product names
-      const productCheck = await pool.query(
-        'SELECT COUNT(*) as count, STRING_AGG(name, \', \') as product_names FROM products WHERE brand_id = $1', 
-        [parseInt(id)]
-      );
-      
-      if (productCheck.rows[0].count > 0) {
-        const count = productCheck.rows[0].count;
-        const productNames = productCheck.rows[0].product_names || 'Unknown products';
-        return res.status(400).json({ 
-          error: `Cannot delete brand. It is connected to ${count} product(s): ${productNames}. Please remove or reassign these products first.`
-        });
-      }
-      
-      // Delete the brand
-      const result = await pool.query('DELETE FROM brands WHERE brand_id = $1', [parseInt(id)]);
-      
-      console.log('Delete result:', result.rowCount);
-      
-      if (result.rowCount === 0) {
-        return res.status(404).json({ error: 'Brand not found' });
-      }
-      
-      res.json({ message: 'Brand deleted successfully' });
-    } catch (error) {
-      console.error('Database error:', error.message);
-      console.error('Full error:', error);
-      res.status(500).json({ error: 'Database error: ' + error.message });
-    }
-  });
-
-  console.log('✅ Brand routes added directly');
 }
 
 // Import and use Color routes
@@ -648,7 +566,7 @@ try {
   console.error('❌ Failed to load user routes:', error.message);
 }
 
-// Register Product routes
+// Register Product routes BEFORE the fallback
 try {
   const productRoutes = require('./src/routes/product.routes');
   app.use('/api/products', productRoutes);
@@ -681,18 +599,6 @@ try {
     } catch (error) {
       console.error('Error fetching product variants:', error);
       res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  app.delete('/api/products/:id', async (req, res) => {
-    try {
-      const pool = require('./src/config/database');
-      const { id } = req.params;
-      await pool.query('DELETE FROM products WHERE product_id = $1', [id]);
-      res.json({ message: 'Product deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      res.status(500).json({ error: error.message });
     }
   });
   

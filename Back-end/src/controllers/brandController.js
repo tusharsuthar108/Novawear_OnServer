@@ -8,9 +8,9 @@ const brandController = {
       const result = await db.query(
         'SELECT * FROM brands ORDER BY created_at DESC'
       );
-      res.json(result.rows);
+      res.json({ success: true, data: result.rows });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, error: error.message });
     }
   },
 
@@ -34,19 +34,32 @@ const brandController = {
 
   createBrand: async (req, res) => {
     try {
+      console.log('=== CREATE BRAND ===');
+      console.log('Body:', req.body);
+      console.log('File:', req.file);
+      
       const { brand_name, description, is_active = true } = req.body;
+      
+      if (!brand_name) {
+        return res.status(400).json({ success: false, error: 'Brand name is required' });
+      }
+      
       const logo_url = req.file ? `/uploads/brands/${req.file.filename}` : null;
       const brand_slug = brand_name.toLowerCase().replace(/\s+/g, '-');
 
+      console.log('Inserting:', { brand_name, brand_slug, description, logo_url, is_active });
+
       const result = await db.query(
         'INSERT INTO brands (brand_name, brand_slug, description, logo_url, is_active) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [brand_name, brand_slug, description, logo_url, is_active === 'true' || is_active === true]
+        [brand_name, brand_slug, description || null, logo_url, is_active === 'true' || is_active === true]
       );
 
-      res.status(201).json(result.rows[0]);
+      console.log('Brand created:', result.rows[0]);
+      res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
-      console.error('Error creating brand:', error);
-      res.status(500).json({ error: error.message });
+      console.error('Error creating brand:', error.message);
+      console.error('Stack:', error.stack);
+      res.status(500).json({ success: false, error: error.message });
     }
   },
 

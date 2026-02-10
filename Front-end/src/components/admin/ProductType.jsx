@@ -4,6 +4,7 @@ import {
   Search, Filter, Folder, Layers, CheckCircle
 } from 'lucide-react';
 import ProductTypeAdd from './ProductTypeAdd';
+import ProductTypeEdit from './ProductTypeEdit';
 import productTypeApi from '../../services/productTypeService';
 
 const ProductType = () => {
@@ -11,6 +12,8 @@ const ProductType = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productTypes, setProductTypes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewingType, setViewingType] = useState(null);
+  const [editingType, setEditingType] = useState(null);
 
   // Fetch product types on component mount
   useEffect(() => {
@@ -52,6 +55,59 @@ const ProductType = () => {
       }
     }
   };
+
+  const handleView = (type) => {
+    setViewingType(type);
+  };
+
+  const handleEdit = (type) => {
+    setEditingType(type);
+  };
+
+  if (viewingType) {
+    return (
+      <div className="space-y-6 p-4">
+        <button onClick={() => setViewingType(null)} className="text-slate-600 hover:text-slate-800">← Back</button>
+        <div className="bg-white p-6 rounded-2xl shadow-lg">
+          <div className="flex items-start gap-6 mb-6">
+            {viewingType.image_url ? (
+              <img 
+                src={`http://localhost:3000${viewingType.image_url}`} 
+                alt={viewingType.type_name}
+                className="w-32 h-32 rounded-xl object-cover border border-slate-200"
+              />
+            ) : (
+              <div className="w-32 h-32 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200">
+                <Layers size={48} className="text-slate-400" />
+              </div>
+            )}
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold mb-2">{viewingType.type_name}</h2>
+              <div className="text-sm text-slate-500 mb-2">ID: #PT-{viewingType.type_id}</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><strong>Hierarchy:</strong> {viewingType.master_category_name} / {viewingType.category_name} / {viewingType.sub_category_name}</div>
+            <div><strong>Status:</strong> {viewingType.is_active ? 'Active' : 'Inactive'}</div>
+            <div className="col-span-2"><strong>Description:</strong> {viewingType.description || 'No description'}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (editingType) {
+    return (
+      <ProductTypeEdit 
+        productType={editingType}
+        onClose={() => setEditingType(null)}
+        onSave={() => {
+          setEditingType(null);
+          fetchProductTypes();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6 p-4">
@@ -169,8 +225,18 @@ const ProductType = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-1">
-                        <button className="p-2 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 rounded-lg transition-colors"><Eye size={18} /></button>
-                        <button className="p-2 hover:bg-amber-50 text-slate-400 hover:text-amber-600 rounded-lg transition-colors"><Edit3 size={18} /></button>
+                        <button 
+                          onClick={() => handleView(type)}
+                          className="p-2 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 rounded-lg transition-colors"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleEdit(type)}
+                          className="p-2 hover:bg-amber-50 text-slate-400 hover:text-amber-600 rounded-lg transition-colors"
+                        >
+                          <Edit3 size={18} />
+                        </button>
                         <button 
                           onClick={() => handleDelete(type.type_id)}
                           className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors"

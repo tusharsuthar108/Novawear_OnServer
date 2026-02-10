@@ -88,6 +88,10 @@ const AddProduct = () => {
                 const fabricData = await fabricRes.json();
                 const patternData = await patternRes.json();
 
+                console.log('Brand API Response:', brandData);
+                console.log('Brands data:', brandData.data);
+                console.log('Brands count:', brandData.data?.length);
+
                 if (brandData.success) setBrands(brandData.data);
                 if (colorData.success) setColors(colorData.data);
                 if (sizeData.success) setSizes(sizeData.data);
@@ -271,10 +275,13 @@ const AddProduct = () => {
                             />
 
                             <div className="w-full">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Brand</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">Brand ({brands.length} available)</label>
                                 <select
                                     value={formData.brand}
-                                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                                    onChange={(e) => {
+                                        console.log('Brand selected:', e.target.value);
+                                        setFormData({ ...formData, brand: e.target.value });
+                                    }}
                                     className="w-full rounded-xl border-2 border-slate-100 bg-slate-50/50 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition-all text-slate-700 text-sm font-medium"
                                 >
                                     <option value="">Select Brand</option>

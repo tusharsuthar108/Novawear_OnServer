@@ -166,7 +166,7 @@ export default function CategorySlider() {
         })}
       </div>
 
-      <style jsx>{`
+      <style >{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>

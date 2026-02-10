@@ -19,14 +19,39 @@ export const productAPI = {
     return response.json();
   },
 
-  deleteProduct: async (id) => {
+  updateProduct: async (id, formData) => {
     const response = await fetch(`${API_BASE_URL}/products/${id}`, {
-      method: 'DELETE',
+      method: 'PUT',
+      body: formData,
     });
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to delete product');
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update product');
     }
     return response.json();
+  },
+
+  deleteProduct: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+        method: 'DELETE',
+      });
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server returned non-JSON response. Check backend logs.');
+      }
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Failed to delete product');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Delete product error:', error);
+      throw error;
+    }
   },
 };

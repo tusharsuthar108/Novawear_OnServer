@@ -7,6 +7,11 @@ const ProductList = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedProducts, setExpandedProducts] = useState({});
+  const [viewingProduct, setViewingProduct] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editFormData, setEditFormData] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -22,6 +27,22 @@ const ProductList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleView = (product) => {
+    setViewingProduct(product);
+  };
+
+  const handleEdit = (product) => {
+    setEditingProduct(product);
+    setEditFormData({
+      name: product.name,
+      sku: product.sku,
+      description: product.description,
+      is_active: product.is_active
+    });
+    setImagePreview(product.image_url ? `http://localhost:3000${product.image_url}` : null);
+    setSelectedImage(null);
   };
 
   const handleDelete = async (id) => {
@@ -44,11 +65,179 @@ const ProductList = () => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData();
+      formData.append('name', editFormData.name);
+      formData.append('sku', editFormData.sku);
+      formData.append('description', editFormData.description);
+      formData.append('is_active', editFormData.is_active);
+      
+      if (selectedImage) {
+        formData.append('image', selectedImage);
+      } else if (editingProduct.image_url) {
+        formData.append('image_url', editingProduct.image_url);
+      }
+
+      await productAPI.updateProduct(editingProduct.product_id, formData);
+      alert('Product updated successfully!');
+      setEditingProduct(null);
+      setEditFormData(null);
+      setSelectedImage(null);
+      setImagePreview(null);
+      fetchProducts();
+    } catch (error) {
+      console.error('Error updating product:', error);
+      alert('Error updating product: ' + error.message);
+    }
+  };
+
   const filteredProducts = products.filter((product) => 
     product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.brand_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (viewingProduct) {
+    return (
+      <div className="space-y-6">
+        <button onClick={() => setViewingProduct(null)} className="text-slate-600 hover:text-slate-800">← Back to Products</button>
+        <div className="bg-white p-6 rounded-2xl shadow-lg">
+          <div className="flex items-start gap-6 mb-6">
+            {viewingProduct.image_url ? (
+              <img 
+                src={`http://localhost:3000${viewingProduct.image_url}`} 
+                alt={viewingProduct.name}
+                className="w-32 h-32 rounded-xl object-cover border border-slate-200"
+              />
+            ) : (
+              <div className="w-32 h-32 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200">
+                <Package size={48} className="text-slate-400" />
+              </div>
+            )}
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold mb-2">{viewingProduct.name}</h2>
+              <div className="text-sm text-slate-500 mb-2">SKU: {viewingProduct.sku}</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><strong>Brand:</strong> {viewingProduct.brand_name}</div>
+            <div><strong>Status:</strong> {viewingProduct.is_active ? 'Active' : 'Inactive'}</div>
+            <div className="col-span-2"><strong>Description:</strong> {viewingProduct.description}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (editingProduct) {
+    return (
+      <div className="space-y-6">
+        <button onClick={() => {
+          setEditingProduct(null);
+          setEditFormData(null);
+          setSelectedImage(null);
+          setImagePreview(null);
+        }} className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-800">
+          ← Back to Products
+        </button>
+        <div className="bg-white p-8 rounded-2xl shadow-lg">
+          <h2 className="text-2xl font-bold mb-6">Edit Product</h2>
+          <form onSubmit={handleUpdate} className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Product Name</label>
+                <input
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">SKU</label>
+                <input
+                  type="text"
+                  value={editFormData.sku}
+                  onChange={(e) => setEditFormData({...editFormData, sku: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Description</label>
+              <textarea
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                rows={4}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Product Image</label>
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 rounded-xl bg-slate-50 border-2 border-dashed flex items-center justify-center overflow-hidden">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <Package size={24} className="text-slate-300" />
+                  )}
+                </div>
+                <div>
+                  <input type="file" onChange={handleImageChange} className="hidden" id="product-image" accept="image/*" />
+                  <label htmlFor="product-image" className="inline-block px-4 py-2 bg-white border rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50">
+                    Choose New Image
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={editFormData.is_active}
+                  onChange={(e) => setEditFormData({...editFormData, is_active: e.target.checked})}
+                  className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                />
+                <span className="text-sm text-slate-600">Active</span>
+              </label>
+            </div>
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-indigo-700"
+              >
+                Update Product
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingProduct(null);
+                  setEditFormData(null);
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                }}
+                className="bg-slate-100 text-slate-600 px-6 py-3 rounded-xl font-medium hover:bg-slate-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -110,9 +299,17 @@ const ProductList = () => {
                               <ChevronRight size={16} />
                             }
                           </button>
-                          <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
-                            <Package size={20} className="text-slate-400" />
-                          </div>
+                          {product.image_url ? (
+                            <img 
+                              src={`http://localhost:3000${product.image_url}`} 
+                              alt={product.name}
+                              className="w-12 h-12 rounded-xl object-cover border border-slate-200"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                              <Package size={20} className="text-slate-400" />
+                            </div>
+                          )}
                           <div>
                             <div className="font-semibold text-slate-800">{product.name}</div>
                             <div className="text-sm text-slate-500 truncate max-w-[200px]">
@@ -143,10 +340,16 @@ const ProductList = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-2 text-slate-400 hover:text-blue-500 transition-colors rounded-lg hover:bg-blue-50">
+                          <button 
+                            onClick={() => handleView(product)}
+                            className="p-2 text-slate-400 hover:text-blue-500 transition-colors rounded-lg hover:bg-blue-50"
+                          >
                             <Eye size={16} />
                           </button>
-                          <button className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50">
+                          <button 
+                            onClick={() => handleEdit(product)}
+                            className="p-2 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50"
+                          >
                             <Edit size={16} />
                           </button>
                           <button 

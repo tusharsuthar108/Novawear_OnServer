@@ -14,12 +14,23 @@ export const brandAPI = {
   },
 
   createBrand: async (formData) => {
-    const response = await fetch(`${API_BASE_URL}/brands`, {
-      method: 'POST',
-      body: formData,
-    });
-    if (!response.ok) throw new Error('Failed to create brand');
-    return response.json();
+    try {
+      const response = await fetch(`${API_BASE_URL}/brands`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Brand API createBrand error:', error);
+      throw error;
+    }
   },
 
   updateBrand: async (id, formData) => {

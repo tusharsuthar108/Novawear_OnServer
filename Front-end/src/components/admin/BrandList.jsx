@@ -19,10 +19,14 @@ const BrandList = () => {
   const fetchBrands = async () => {
     try {
       setLoading(true);
-      const data = await brandAPI.getAllBrands();
-      setBrands(data);
+      const response = await brandAPI.getAllBrands();
+      console.log('Brands API response:', response);
+      // Handle both {success: true, data: []} and direct array responses
+      const brandsData = response.success ? response.data : (Array.isArray(response) ? response : []);
+      setBrands(brandsData);
     } catch (error) {
       console.error('Error fetching brands:', error);
+      alert('Failed to load brands: ' + error.message);
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import MasterCategoryAdd from './MasterCategoryAdd';
 import MasterCategoryView from './MasterCategoryView';
+import MasterCategoryEdit from './MasterCategoryEdit';
 import { deleteMasterCategory } from '../../api/masterCategory.api';
 
 const MasterCategory = () => {
@@ -14,6 +15,7 @@ const MasterCategory = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -102,6 +104,32 @@ const MasterCategory = () => {
   const handleView = (category) => {
     setSelectedCategory(category);
     setIsViewModalOpen(true);
+  };
+
+  const handleEdit = (category) => {
+    setSelectedCategory(category);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateCategory = async (formData) => {
+    try {
+      setError(null);
+      const response = await fetch(`${API_BASE_URL}/${selectedCategory.master_category_id}`, {
+        method: 'PUT',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        setSuccess('Category updated successfully!');
+        fetchCategories();
+        setIsEditModalOpen(false);
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        throw new Error('Failed to update category');
+      }
+    } catch (error) {
+      setError(`Update failed: ${error.message}`);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -360,7 +388,10 @@ const MasterCategory = () => {
                         >
                           <Eye size={18} />
                         </button>
-                        <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
+                        <button 
+                          onClick={() => handleEdit(cat)}
+                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        >
                           <Edit3 size={18} />
                         </button>
                         <button 
@@ -397,6 +428,13 @@ const MasterCategory = () => {
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         category={selectedCategory}
+      />
+      
+      <MasterCategoryEdit 
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleUpdateCategory}
+        categoryData={selectedCategory}
       />
     </div>
   );

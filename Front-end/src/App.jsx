@@ -37,6 +37,7 @@ function AppContent() {
           {/* Product Details */}
           <Route path="/product/:id" element={<ProductDetailsPage />} />
           <Route path="/category" element={<CategoryPage />} />
+          <Route path="/shop/:masterSlug/:categorySlug" element={<CategoryPage />} />
           <Route path="/tranding" element={<Tranding />} />
 
           <Route path="/category-explorer" element={<CategoryPage />} />

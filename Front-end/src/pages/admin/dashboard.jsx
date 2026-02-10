@@ -52,13 +52,10 @@ import AddProduct from "../../components/admin/AddProduct";
 import Pending from '../../components/admin/Pending';
 import InTransit from '../../components/admin/InTransit';
 import Delivered from '../../components/admin/Delivered';
-<<<<<<< HEAD
 import Notification from "../../components/admin/Notification";
 import DashboardUi from "../../components/DashboardUi";
-=======
 import OrderAcceptance from "../../components/admin/OrderAcceptance";
 import OrderList from "../../components/admin/OrderList";
-import Notification from "../../components/admin/Notification";
 // import ProductList from './ProductList';
 // import AddProduct from './AddProduct';
 // import PriceList from './PriceList';
@@ -72,7 +69,6 @@ import Notification from "../../components/admin/Notification";
 // import Delivered from './Delivered';
 // import NewProduct from './NewProduct';
 // import Management from './Management';
->>>>>>> 79b0aa99ded747e2280a96112cf5a92f938b49f4
 
 const Dashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -110,8 +106,6 @@ const Dashboard = () => {
       "Pending": <Pending />,
       "In Transit": <InTransit />,
       "Delivered": <Delivered />,
-<<<<<<< HEAD
-=======
       // "Brand List": <BrandList />,
       // "Add Brand": <AddBrand />,
       // "Product List": <ProductList />,
@@ -127,7 +121,6 @@ const Dashboard = () => {
       // "Delivered": <Delivered />,
       // "New Product": <NewProduct />,
       // "Management": <Management />
->>>>>>> 79b0aa99ded747e2280a96112cf5a92f938b49f4
     };
     return components[itemName] || <DashboardUi />;
   };

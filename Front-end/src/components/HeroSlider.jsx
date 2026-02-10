@@ -178,7 +178,7 @@ export default function HeroBanner() {
       </div>
 
       {/* Animations */}
-      <style jsx>{`
+      <style>{`
         .animate-progress {
           animation: progress linear forwards;
         }

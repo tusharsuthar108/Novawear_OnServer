@@ -37,23 +37,37 @@ const AddBrand = ({ onSuccess }) => {
     setLoading(true);
 
     try {
+      console.log('=== SUBMITTING BRAND ===');
+      console.log('Form data:', formData);
+      console.log('Selected image:', selectedImage);
+      
       const submitData = new FormData();
       submitData.append('brand_name', formData.brand_name);
-      submitData.append('description', formData.description);
+      if (formData.description) {
+        submitData.append('description', formData.description);
+      }
       submitData.append('is_active', formData.is_active);
       
       if (selectedImage) {
         submitData.append('logo', selectedImage);
       }
 
-      await brandAPI.createBrand(submitData);
+      console.log('Calling API...');
+      const response = await brandAPI.createBrand(submitData);
+      console.log('API Response:', response);
       
-      handleReset();
-      if (onSuccess) onSuccess();
-      alert('Brand created successfully!');
+      if (response.success) {
+        handleReset();
+        if (onSuccess) onSuccess();
+        alert('Brand created successfully!');
+      } else {
+        throw new Error(response.error || 'Failed to create brand');
+      }
     } catch (error) {
       console.error('Error creating brand:', error);
-      alert('Error creating brand. Please try again.');
+      console.error('Error details:', error.response);
+      const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+      alert(`Error creating brand: ${errorMsg}`);
     } finally {
       setLoading(false);
     }

@@ -1,15 +1,36 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import { SlidersHorizontal, ChevronDown, ChevronLeft, ChevronRight, Check, X } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { products } from "../data/products";
 import ProductCard from "../components/ProductCard";
 
 const CategoryPage = () => {
+  const { masterSlug, categorySlug } = useParams();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("recommended");
   const [currentPage, setCurrentPage] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const itemsPerPage = 30;
+
+  useEffect(() => {
+    fetchProducts();
+  }, [masterSlug, categorySlug]);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:3000/api/products');
+      const data = await response.json();
+      const productsData = data.success ? data.data : data;
+      setProducts(productsData);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Sticky Sidebar Logic
   const sidebarRef = useRef(null);
@@ -78,8 +99,10 @@ const CategoryPage = () => {
           {/* Header Section */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 border-b border-gray-100 pb-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Shop By Category</h1>
-              <p>{products.length} Items</p>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+                {categorySlug ? categorySlug.replace(/-/g, ' ').toUpperCase() : 'Shop By Category'}
+              </h1>
+              <p>{loading ? 'Loading...' : `${products.length} Items`}</p>
             </div>
 
             <div className="flex items-center gap-4">
@@ -281,25 +304,30 @@ const CategoryPage = () => {
 
             {/* Products Grid & Pagination */}
             <main className="flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
-                {currentItems.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    image={product.images[0]}
-                    brand={product.brand}
-                    title={product.title}
-                    price={product.price}
-                    mrp={product.oldPrice}
-                    discount={product.discount ? `${product.discount}% OFF` : null}
-                    rating="4.2"
-                    reviews="150"
-                  />
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
+              {loading ? (
+                <div className="text-center py-12">Loading products...</div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">No products found in this category.</div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+                    {currentItems.map((product) => (
+                      <ProductCard
+                        key={product.product_id}
+                        id={product.product_id}
+                        image={product.image_url || 'https://via.placeholder.com/300'}
+                        brand={product.brand_name}
+                        title={product.name}
+                        price={product.price}
+                        mrp={product.mrp}
+                        discount={product.discount_price ? `${Math.round((1 - product.discount_price / product.price) * 100)}% OFF` : null}
+                        rating="4.2"
+                        reviews="150"
+                      />
+                    ))}
+                      </div>
+                  {/* Pagination */}
+                  {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-16">
                   <button
                     onClick={prevPage}
@@ -330,6 +358,8 @@ const CategoryPage = () => {
                     <ChevronRight size={20} />
                   </button>
                 </div>
+                  )}
+                </>
               )}
             </main>
           </div>

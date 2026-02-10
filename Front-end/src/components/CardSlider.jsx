@@ -143,7 +143,7 @@ export default function CardSlider({ badgeType = "trending", customTitle }) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style >{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>

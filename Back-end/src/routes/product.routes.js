@@ -28,4 +28,7 @@ router.get("/", productController.getAllProducts);
 // Use upload.array because we are sending multiple variant images
 router.post("/", upload.array("variantImage"), productController.createProduct);
 
+// Update product
+router.put("/:id", upload.single("image"), productController.updateProduct);
+
 module.exports = router;

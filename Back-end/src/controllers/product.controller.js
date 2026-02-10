@@ -24,6 +24,20 @@ exports.createProduct = async (req, res) => {
 
     const { title, brand, sku, description, long_description, master, category, subCategory, type } = req.body;
 
+    console.log('=== REQUEST DATA ===');
+    console.log('brand:', brand, typeof brand);
+    console.log('master:', master, typeof master);
+    console.log('category:', category, typeof category);
+    console.log('subCategory:', subCategory, typeof subCategory);
+    console.log('type:', type, typeof type);
+
+    // Convert string 'undefined' to null
+    const brandId = brand && brand !== 'undefined' ? parseInt(brand) : null;
+    const masterId = master && master !== 'undefined' ? parseInt(master) : null;
+    const categoryId = category && category !== 'undefined' ? parseInt(category) : null;
+    const subCategoryId = subCategory && subCategory !== 'undefined' ? parseInt(subCategory) : null;
+    const typeId = type && type !== 'undefined' ? parseInt(type) : null;
+
     // Parse variants
     let variants;
     try {
@@ -46,21 +60,26 @@ exports.createProduct = async (req, res) => {
     console.log('--- Creating Product ---');
     console.log('Title:', title);
 
+    // Generate slug from title
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    console.log('Generated slug:', slug);
+
     // 1. Insert into products table with category references
     const productQuery = `
-      INSERT INTO products (brand_id, master_category_id, category_id, sub_category_id, type_id, badge_id, sku, name, description, long_description, is_active)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      INSERT INTO products (brand_id, master_category_id, category_id, sub_category_id, type_id, badge_id, sku, slug, name, description, long_description, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING product_id
     `;
 
     const productResult = await client.query(productQuery, [
-      brand,
-      master || null,
-      category || null, 
-      subCategory || null,
-      type || null,
+      brandId,
+      masterId,
+      categoryId,
+      subCategoryId,
+      typeId,
       null, // badge_id - can be set later via badge management
       sku,
+      slug,
       title,
       description,
       long_description,
@@ -75,10 +94,10 @@ exports.createProduct = async (req, res) => {
     // 2. Process Variants
     for (const variant of variants) {
       const { attributes, stock, salePrice, mrp } = variant;
-      const colorId = attributes.Color; // ID
-      const sizeId = attributes.Size;   // ID
-      const fabricId = attributes.Fabric || null;
-      const patternId = attributes.Pattern || null;
+      const colorId = attributes.Color && attributes.Color !== 'undefined' && attributes.Color !== '' ? parseInt(attributes.Color) : null;
+      const sizeId = attributes.Size && attributes.Size !== 'undefined' && attributes.Size !== '' ? parseInt(attributes.Size) : null;
+      const fabricId = attributes.Fabric && attributes.Fabric !== 'undefined' && attributes.Fabric !== '' ? parseInt(attributes.Fabric) : null;
+      const patternId = attributes.Pattern && attributes.Pattern !== 'undefined' && attributes.Pattern !== '' ? parseInt(attributes.Pattern) : null;
 
       if (!colorId) throw new Error('Color is required for variant');
       if (!sizeId) throw new Error('Size is required for variant');
@@ -138,10 +157,39 @@ exports.createProduct = async (req, res) => {
     });
 
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Create Product Error:', error);
-    res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+    if (client) await client.query('ROLLBACK');
+    console.error('=== CREATE PRODUCT ERROR ===');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Request body:', req.body);
+    res.status(500).json({ success: false, message: error.message });
   } finally {
     if (client) client.release();
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, sku, description, is_active } = req.body;
+    
+    let image_url = req.body.image_url;
+    if (req.file) {
+      image_url = `/uploads/products/${req.file.filename}`;
+    }
+    
+    const result = await pool.query(
+      'UPDATE products SET name = COALESCE($1, name), sku = COALESCE($2, sku), description = COALESCE($3, description), image_url = COALESCE($4, image_url), is_active = COALESCE($5, is_active) WHERE product_id = $6 RETURNING *',
+      [name, sku, description, image_url, is_active === 'true' || is_active === true, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Product not found' });
+    }
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Update product error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 };
