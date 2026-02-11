@@ -18,4 +18,7 @@ router.delete('/products/badges/remove', ProductBadgeController.removeBadgeFromP
 // Get all available badges
 router.get('/badges/available', ProductBadgeController.getAvailableBadges);
 
+// Get products by badge type
+router.get('/badge-type/:badgeType', ProductBadgeController.getProductsByBadgeType);
+
 module.exports = router;

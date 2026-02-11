@@ -89,6 +89,65 @@ class ProductBadgeController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  // Get products by badge type
+  static async getProductsByBadgeType(req, res) {
+    try {
+      const { badgeType } = req.params;
+      
+      // First, let's check what columns exist
+      const columnsCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'products'
+      `);
+      console.log('Products table columns:', columnsCheck.rows.map(r => r.column_name));
+      
+      const result = await pool.query(`
+        SELECT DISTINCT
+          p.product_id, 
+          p.name as product_name, 
+          p.description,
+          pv.variant_id, 
+          pv.price, 
+          pv.mrp, 
+          pv.stock_quantity,
+          pi.image_url,
+          b.brand_name,
+          pb.badge_name,
+          CASE 
+            WHEN pv.mrp > 0 AND pv.price > 0 
+            THEN ROUND(((pv.mrp - pv.price) / pv.mrp * 100)::numeric, 0)
+            ELSE 0 
+          END as discount_percentage
+        FROM products p
+        INNER JOIN product_badges pb ON p.badge_id = pb.badge_id
+        LEFT JOIN brands b ON p.brand_id = b.brand_id
+        LEFT JOIN product_variants pv ON p.product_id = pv.product_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_primary = true
+        WHERE LOWER(pb.badge_name) = LOWER($1)
+        AND pv.stock_quantity > 0
+        ORDER BY p.product_id DESC
+        LIMIT 20
+      `, [badgeType]);
+      
+      console.log(`Found ${result.rows.length} products for badge: ${badgeType}`);
+      res.json({ success: true, data: result.rows });
+    } catch (error) {
+      console.error('Error fetching products by badge type:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        detail: error.detail,
+        position: error.position
+      });
+      res.status(500).json({ 
+        success: false, 
+        message: error.message,
+        detail: error.detail || 'No additional details'
+      });
+    }
+  }
 }
 
 module.exports = ProductBadgeController;
