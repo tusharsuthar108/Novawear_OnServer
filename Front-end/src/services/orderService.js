@@ -10,37 +10,38 @@ const mockOrders = [
     customer_phone: '+1 (555) 123-4567',
     created_at: '2024-12-15T08:30:00Z',
     total_amount: 4998.00,
-    status_id: 1,
-    status_name: 'Pending',
+    status: 'Pending',
     address_line1: '123 Tech Lane',
     city: 'Silicon Valley',
     state: 'CA',
     pincode: '94043',
     country: 'USA',
     payment_status: 'Paid',
-    payment_method: 'Credit Card ****1234'
-  },
-  {
-    order_id: 2,
-    user_id: 2,
-    customer_name: 'Sarah Johnson',
-    customer_email: 'sarah.j@email.com',
-    customer_phone: '+1 (555) 987-6543',
-    created_at: '2024-12-14T10:15:00Z',
-    total_amount: 7497.00,
-    status_id: 1,
-    status_name: 'Pending',
-    address_line1: '456 Fashion Ave',
-    city: 'New York',
-    state: 'NY',
-    pincode: '10001',
-    country: 'USA',
-    payment_status: 'Paid',
-    payment_method: 'UPI Payment'
+    payment_method: 'Credit Card ****1234',
+    item_count: 2
   }
 ];
 
 export const orderService = {
+  // Get all orders (Admin)
+  getAllOrders: async () => {
+    try {
+      console.log('Fetching orders from:', `${API_BASE_URL}/orders/all`);
+      const response = await fetch(`${API_BASE_URL}/orders/all`);
+      if (!response.ok) {
+        console.error('API response not OK:', response.status);
+        throw new Error('API unavailable');
+      }
+      const data = await response.json();
+      console.log('Orders received:', data);
+      return data;
+    } catch (error) {
+      console.error('API error:', error);
+      console.warn('Using mock data');
+      return { success: true, data: mockOrders };
+    }
+  },
+
   // Get all pending orders
   getPendingOrders: async () => {
     try {
@@ -49,23 +50,39 @@ export const orderService = {
       return response.json();
     } catch (error) {
       console.warn('API unavailable, using mock data');
-      return mockOrders.filter(order => order.status_id === 1);
+      return { success: true, data: mockOrders.filter(order => order.status === 'Pending') };
+    }
+  },
+
+  // Create order
+  createOrder: async (orderData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/orders/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+      if (!response.ok) throw new Error('API unavailable');
+      return response.json();
+    } catch (error) {
+      console.error('Create order error:', error);
+      return { success: false, error: error.message };
     }
   },
 
   // Update order status
-  updateOrderStatus: async (orderId, statusId) => {
+  updateOrderStatus: async (orderId, status, trackingNumber) => {
     try {
       const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status_id: statusId })
+        body: JSON.stringify({ status, tracking_number: trackingNumber })
       });
       if (!response.ok) throw new Error('API unavailable');
       return response.json();
     } catch (error) {
       console.warn('API unavailable, simulating update');
-      return { order_id: orderId, status_id: statusId };
+      return { success: true, data: { order_id: orderId, status } };
     }
   },
 
@@ -79,17 +96,20 @@ export const orderService = {
       console.warn('API unavailable, using mock details');
       const order = mockOrders.find(o => o.order_id === orderId);
       return {
-        ...order,
-        items: [
-          {
-            product_name: 'ARCHITECTURAL OVERSIZED TEE',
-            size_name: 'L',
-            color_name: 'Black',
-            quantity: 2,
-            price: 2499.00,
-            image_url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100'
-          }
-        ]
+        success: true,
+        data: {
+          ...order,
+          items: [
+            {
+              product_name: 'ARCHITECTURAL OVERSIZED TEE',
+              size_name: 'L',
+              color_name: 'Black',
+              quantity: 2,
+              price: 2499.00,
+              image_url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100'
+            }
+          ]
+        }
       };
     }
   }

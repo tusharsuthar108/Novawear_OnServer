@@ -282,7 +282,16 @@ export default function ProductGallery({ category, mainCategory, subCategory }) 
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-xl font-bold text-gray-900">₹</span>
+                        {product.discount_price ? (
+                          <>
+                            <span className="text-2xl font-bold text-gray-900">₹{parseFloat(product.discount_price).toLocaleString('en-IN')}</span>
+                            <span className="text-sm text-gray-500 line-through">₹{parseFloat(product.price).toLocaleString('en-IN')}</span>
+                          </>
+                        ) : product.price ? (
+                          <span className="text-2xl font-bold text-gray-900">₹{parseFloat(product.price).toLocaleString('en-IN')}</span>
+                        ) : (
+                          <span className="text-xl font-bold text-gray-900">₹</span>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -44,18 +44,17 @@ import PricingPlans from "../../components/admin/PricingPlans";
 import Productpricing from "../../components/admin/Productpricing";
 import DiscountsCoupons from "../../components/admin/DiscountsCoupons";
 import TaxesFees from "../../components/admin/TaxesFees";
-import Inventory from "../../components/admin/Inventory";
+import InventoryWorking from "../../components/admin/InventoryWorking";
+import ShipmentWorking from "../../components/admin/ShipmentWorking";
+import PricingWorking from "../../components/admin/PricingWorking";
 import ProductList from "../../components/admin/ProductList";
 import BrandList from '../../components/admin/BrandList';
 import AddBrand from '../../components/admin/AddBrand';
 import AddProduct from "../../components/admin/AddProduct";
-import Pending from '../../components/admin/Pending';
-import InTransit from '../../components/admin/InTransit';
-import Delivered from '../../components/admin/Delivered';
 import Notification from "../../components/admin/Notification";
 import DashboardUi from "../../components/DashboardUi";
-import OrderAcceptance from "../../components/admin/OrderAcceptance";
-import OrderList from "../../components/admin/OrderList";
+import OrderListWorking from "../../components/admin/OrderListWorking";
+import TransactionsWorking from "../../components/admin/TransactionsWorking";
 // import ProductList from './ProductList';
 // import AddProduct from './AddProduct';
 // import PriceList from './PriceList';
@@ -90,22 +89,22 @@ const Dashboard = () => {
       "Product Size": <ProductSize />,
       "Product Badge": <ProductBadge />,
       "Badges on Product": <BadgesOnProduct />,
-      "Order List": <OrderList />,
-      "Orders Management": <OrderAcceptance />,
+      "Order List": <OrderListWorking />,
+      "Orders Management": <AdminOrders />,
       "Order Details": <OrderDetails />,
-      "Inventory": <Inventory />,
-      "Transactions": <Transactions />,
-      "Pricing Plans": <PricingPlans />,
-      "Product Pricing": <Productpricing />,
-      "Discounts & Coupons": <DiscountsCoupons />,
+      "Inventory": <InventoryWorking />,
+      "Transactions": <TransactionsWorking />,
+      "Pricing Plans": <PricingWorking />,
+      "Product Pricing": <PricingWorking />,
+      "Discounts & Coupons": <PricingWorking />,
       "Taxes & Fees": <TaxesFees />,
       "Product List": <ProductList />,
       "Brand List": <BrandList />,
       "Add Brand": <AddBrand />,
       "Add Product": <AddProduct />,
-      "Pending": <Pending />,
-      "In Transit": <InTransit />,
-      "Delivered": <Delivered />,
+      "Pending": <ShipmentWorking />,
+      "In Transit": <ShipmentWorking />,
+      "Delivered": <ShipmentWorking />,
       // "Brand List": <BrandList />,
       // "Add Brand": <AddBrand />,
       // "Product List": <ProductList />,

@@ -8,7 +8,7 @@ export default function CategorySlider() {
   const sliderRef = useRef(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [masterCategories, setMasterCategories] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([]);   
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {

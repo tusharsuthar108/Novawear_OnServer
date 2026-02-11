@@ -18,6 +18,7 @@ import AdminOrders from "./pages/admin/Orders";
 
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import Footer from "./components/Footer";
 
 
 function AppContent() {
@@ -61,14 +62,14 @@ function AppContent() {
           
           {/* Admin Dashboard */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          {/* <Route path="/admin/add-product" element={<AddProduct />} /> */}
-          <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route path="/admin/orders" element={<AdminDashboard />} />
 
           {/* Authentication */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
       </Routes>
+      <Footer />
     </>
   );
 }

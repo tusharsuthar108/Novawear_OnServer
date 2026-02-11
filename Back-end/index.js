@@ -566,6 +566,15 @@ try {
   console.error('❌ Failed to load user routes:', error.message);
 }
 
+// Import and use Cart routes
+try {
+  const cartRoutes = require('./src/routes/cart.routes');
+  app.use('/api/cart', cartRoutes);
+  console.log('✅ Cart routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load cart routes:', error.message);
+}
+
 // Register Product routes BEFORE the fallback
 try {
   const productRoutes = require('./src/routes/product.routes');

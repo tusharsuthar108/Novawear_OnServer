@@ -39,6 +39,8 @@ const ProductList = () => {
       name: product.name,
       sku: product.sku,
       description: product.description,
+      price: product.price || '',
+      discount_price: product.discount_price || '',
       is_active: product.is_active
     });
     setImagePreview(product.image_url ? `http://localhost:3000${product.image_url}` : null);
@@ -80,6 +82,8 @@ const ProductList = () => {
       formData.append('name', editFormData.name);
       formData.append('sku', editFormData.sku);
       formData.append('description', editFormData.description);
+      formData.append('price', editFormData.price || 0);
+      formData.append('discount_price', editFormData.discount_price || 0);
       formData.append('is_active', editFormData.is_active);
       
       if (selectedImage) {
@@ -132,6 +136,8 @@ const ProductList = () => {
           <div className="grid grid-cols-2 gap-4">
             <div><strong>Brand:</strong> {viewingProduct.brand_name}</div>
             <div><strong>Status:</strong> {viewingProduct.is_active ? 'Active' : 'Inactive'}</div>
+            {viewingProduct.price && <div><strong>Price:</strong> ₹{viewingProduct.price}</div>}
+            {viewingProduct.discount_price && <div><strong>Discount Price:</strong> ₹{viewingProduct.discount_price}</div>}
             <div className="col-span-2"><strong>Description:</strong> {viewingProduct.description}</div>
           </div>
         </div>
@@ -172,6 +178,26 @@ const ProductList = () => {
                   onChange={(e) => setEditFormData({...editFormData, sku: e.target.value})}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Price (₹)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editFormData.price}
+                  onChange={(e) => setEditFormData({...editFormData, price: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Discount Price (₹)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editFormData.discount_price}
+                  onChange={(e) => setEditFormData({...editFormData, discount_price: e.target.value})}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </div>

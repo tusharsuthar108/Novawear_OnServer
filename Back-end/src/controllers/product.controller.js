@@ -171,7 +171,7 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, sku, description, is_active } = req.body;
+    const { name, sku, description, price, discount_price, is_active } = req.body;
     
     let image_url = req.body.image_url;
     if (req.file) {
@@ -179,8 +179,8 @@ exports.updateProduct = async (req, res) => {
     }
     
     const result = await pool.query(
-      'UPDATE products SET name = COALESCE($1, name), sku = COALESCE($2, sku), description = COALESCE($3, description), image_url = COALESCE($4, image_url), is_active = COALESCE($5, is_active) WHERE product_id = $6 RETURNING *',
-      [name, sku, description, image_url, is_active === 'true' || is_active === true, id]
+      'UPDATE products SET name = COALESCE($1, name), sku = COALESCE($2, sku), description = COALESCE($3, description), price = COALESCE($4, price), discount_price = COALESCE($5, discount_price), image_url = COALESCE($6, image_url), is_active = COALESCE($7, is_active) WHERE product_id = $8 RETURNING *',
+      [name, sku, description, price || null, discount_price || null, image_url, is_active === 'true' || is_active === true, id]
     );
     
     if (result.rows.length === 0) {
