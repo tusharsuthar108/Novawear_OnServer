@@ -1,32 +1,43 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { SlidersHorizontal, ChevronDown, ChevronLeft, ChevronRight, Check, X } from "lucide-react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
 
 const CategoryPage = () => {
   const { masterSlug, categorySlug } = useParams();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("recommended");
   const [currentPage, setCurrentPage] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
   const itemsPerPage = 30;
 
   useEffect(() => {
-    fetchProducts();
+    fetchData();
   }, [masterSlug, categorySlug]);
 
-  const fetchProducts = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/products');
-      const data = await response.json();
-      const productsData = data.success ? data.data : data;
-      setProducts(productsData);
+      const [productsRes, categoriesRes, brandsRes] = await Promise.all([
+        fetch('http://localhost:3000/api/products'),
+        fetch('http://localhost:3000/api/categories'),
+        fetch('http://localhost:3000/api/brands')
+      ]);
+      
+      const productsData = await productsRes.json();
+      const categoriesData = await categoriesRes.json();
+      const brandsData = await brandsRes.json();
+      
+      setProducts(productsData.success ? productsData.data : productsData);
+      setCategories(categoriesData.success ? categoriesData.data : categoriesData);
+      setBrands(brandsData.success ? brandsData.data : brandsData);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -71,20 +82,43 @@ const CategoryPage = () => {
     };
   }, []);
 
+  // Filter and sort products
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category_id);
+    const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brand_id);
+    return matchesCategory && matchesBrand;
+  }).sort((a, b) => {
+    if (sort === 'priceLow') return (a.price || 0) - (b.price || 0);
+    if (sort === 'priceHigh') return (b.price || 0) - (a.price || 0);
+    return 0;
+  });
+
   // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = products.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  const handleCategoryFilter = (categoryId) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryId) ? prev.filter(id => id !== categoryId) : [...prev, categoryId]
+    );
+    setCurrentPage(1);
+  };
+
+  const handleBrandFilter = (brandId) => {
+    setSelectedBrands(prev => 
+      prev.includes(brandId) ? prev.filter(id => id !== brandId) : [...prev, brandId]
+    );
+    setCurrentPage(1);
+  };
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   const nextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   const prevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
 
   return (
-    <>
-      <Navbar />
-      <div className="bg-white min-h-screen font-sans py-6">
+    <div className="bg-white min-h-screen font-sans py-6">
         <div className="max-w-[1440px] mx-auto px-6 py-8">
 
           {/* Breadcrumb */}
@@ -102,7 +136,7 @@ const CategoryPage = () => {
               <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
                 {categorySlug ? categorySlug.replace(/-/g, ' ').toUpperCase() : 'Shop By Category'}
               </h1>
-              <p>{loading ? 'Loading...' : `${products.length} Items`}</p>
+              <p>{loading ? 'Loading...' : `${filteredProducts.length} Items`}</p>
             </div>
 
             <div className="flex items-center gap-4">
@@ -144,10 +178,15 @@ const CategoryPage = () => {
                   <section>
                     <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-5">Categories</h3>
                     <div className="space-y-3">
-                      {["Tshirts", "Shirts", "Kurtas", "Sweatshirts", "Jackets", "Blazers"].map((item) => (
-                        <label key={item} className="flex items-center group cursor-pointer">
-                          <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black" />
-                          <span className="ml-3 text-sm text-gray-600">{item}</span>
+                      {categories.map((item) => (
+                        <label key={item.category_id} className="flex items-center group cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedCategories.includes(item.category_id)}
+                            onChange={() => handleCategoryFilter(item.category_id)}
+                            className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black" 
+                          />
+                          <span className="ml-3 text-sm text-gray-600">{item.name}</span>
                         </label>
                       ))}
                     </div>
@@ -159,10 +198,15 @@ const CategoryPage = () => {
                   <section>
                     <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-5">Brand</h3>
                     <div className="space-y-3">
-                      {["Roadster", "HIGHLANDER", "WROGN", "Mast & Harbour", "H&M"].map((brand) => (
-                        <label key={brand} className="flex items-center group cursor-pointer">
-                          <input type="checkbox" className="rounded border-gray-300 text-black focus:ring-black w-4 h-4" />
-                          <span className="ml-3 text-sm text-gray-600">{brand}</span>
+                      {brands.map((brand) => (
+                        <label key={brand.brand_id} className="flex items-center group cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedBrands.includes(brand.brand_id)}
+                            onChange={() => handleBrandFilter(brand.brand_id)}
+                            className="rounded border-gray-300 text-black focus:ring-black w-4 h-4" 
+                          />
+                          <span className="ml-3 text-sm text-gray-600">{brand.brand_name}</span>
                         </label>
                       ))}
                     </div>
@@ -233,12 +277,17 @@ const CategoryPage = () => {
               <section>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-5">Categories</h3>
                 <div className="space-y-3">
-                  {["Tshirts", "Shirts", "Kurtas", "Sweatshirts", "Jackets", "Blazers"].map((item) => (
-                    <label key={item} className="flex items-center group cursor-pointer">
+                  {categories.map((item) => (
+                    <label key={item.category_id} className="flex items-center group cursor-pointer">
                       <div className="relative flex items-center">
-                        <input type="checkbox" className="peer w-4 h-4 rounded border-gray-300 text-black focus:ring-black transition" />
+                        <input 
+                          type="checkbox" 
+                          checked={selectedCategories.includes(item.category_id)}
+                          onChange={() => handleCategoryFilter(item.category_id)}
+                          className="peer w-4 h-4 rounded border-gray-300 text-black focus:ring-black transition" 
+                        />
                       </div>
-                      <span className="ml-3 text-sm text-gray-600 group-hover:text-black transition">{item}</span>
+                      <span className="ml-3 text-sm text-gray-600 group-hover:text-black transition">{item.name}</span>
                     </label>
                   ))}
                 </div>
@@ -250,10 +299,15 @@ const CategoryPage = () => {
               <section>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-5">Brand</h3>
                 <div className="space-y-3">
-                  {["Roadster", "HIGHLANDER", "WROGN", "Mast & Harbour", "H&M"].map((brand) => (
-                    <label key={brand} className="flex items-center group cursor-pointer">
-                      <input type="checkbox" className="rounded border-gray-300 text-black focus:ring-black w-4 h-4" />
-                      <span className="ml-3 text-sm text-gray-600 group-hover:text-black transition">{brand}</span>
+                  {brands.map((brand) => (
+                    <label key={brand.brand_id} className="flex items-center group cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedBrands.includes(brand.brand_id)}
+                        onChange={() => handleBrandFilter(brand.brand_id)}
+                        className="rounded border-gray-300 text-black focus:ring-black w-4 h-4" 
+                      />
+                      <span className="ml-3 text-sm text-gray-600 group-hover:text-black transition">{brand.brand_name}</span>
                     </label>
                   ))}
                 </div>
@@ -365,8 +419,6 @@ const CategoryPage = () => {
           </div>
         </div>
       </div>
-      <Footer />
-    </>
   );
 };
 
