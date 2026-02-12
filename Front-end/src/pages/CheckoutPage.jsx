@@ -360,7 +360,7 @@ export default function CheckoutPage() {
                 {cartItems.map((item) => (
                   <div key={`${item.id}-${item.selectedSize}`} className="flex gap-3">
                     <img 
-                      src={item.images[0]} 
+                      src={item.images?.[0] || item.image_url || 'https://via.placeholder.com/100'} 
                       alt={item.name}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
@@ -368,7 +368,7 @@ export default function CheckoutPage() {
                       <h3 className="font-medium text-sm">{item.name}</h3>
                       <p className="text-xs text-gray-600">Size: {item.selectedSize}</p>
                       <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
-                      <p className="font-semibold text-sm">₹{(item.price * item.quantity).toLocaleString('en-IN')}</p>
+                      <p className="font-semibold text-sm">₹{((item.price || 0) * item.quantity).toLocaleString('en-IN')}</p>
                     </div>
                   </div>
                 ))}

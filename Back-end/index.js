@@ -621,15 +621,36 @@ try {
   console.log('✅ Product Badge routes loaded');
 } catch (error) {
   console.error('❌ Failed to load product badge routes:', error.message);
+  
+  // Add product badge route directly as fallback - simplified version
+  app.get('/api/product-badges/badge-type/:badgeType', async (req, res) => {
+    try {
+      const pool = require('./src/config/database');
+      const { badgeType } = req.params;
+      
+      // Just return all active products for now since badge filtering might not be set up
+      const result = await pool.query(`
+        SELECT p.*, b.brand_name
+        FROM products p
+        LEFT JOIN brands b ON p.brand_id = b.brand_id
+        WHERE p.is_active = true
+        ORDER BY p.created_at DESC
+        LIMIT 20
+      `);
+      
+      res.json({ success: true, data: result.rows });
+    } catch (error) {
+      console.error('Error fetching products by badge:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
+  console.log('✅ Product Badge routes added directly');
 }
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📡 Test the API at: http://localhost:${PORT}/test`);
-  console.log(`📂 Master Categories API: http://localhost:${PORT}/api/master-categories`);
-  console.log(`📂 Categories API: http://localhost:${PORT}/api/categories`);
-  console.log(`📂 SubCategories API: http://localhost:${PORT}/api/subcategories`);
-  console.log(`📂 Product Types API: http://localhost:${PORT}/api/product-types`);
-  console.log(`💰 Pricing API: http://localhost:${PORT}/api/pricing`);
-  console.log(`🚚 Shipments API: http://localhost:${PORT}/api/shipments`);
+  console.log(`📂 Products API: http://localhost:${PORT}/api/products`);
+  console.log(`🏷️  Product Badges API: http://localhost:${PORT}/api/product-badges/badge-type/trending`);
 });

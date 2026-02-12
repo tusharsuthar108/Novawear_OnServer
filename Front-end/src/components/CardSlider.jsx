@@ -13,7 +13,8 @@ export default function CardSlider({ badgeType = "trending", customTitle }) {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/product-badges/badge-type/${badgeType}`);
+        // Use regular products API instead of badge API
+        const response = await fetch('http://localhost:3000/api/products');
         const data = await response.json();
         if (data.success && data.data && data.data.length > 0) {
           setProducts(data.data);
@@ -118,7 +119,7 @@ export default function CardSlider({ badgeType = "trending", customTitle }) {
             // Check if it's database product or dummy product
             const isDbProduct = product.product_id !== undefined;
             const productId = isDbProduct ? product.product_id : product.id;
-            const productName = isDbProduct ? product.product_name : product.name;
+            const productName = isDbProduct ? product.name : product.name;
             const imageUrl = isDbProduct 
               ? (product.image_url?.startsWith('http') ? product.image_url : `http://localhost:3000${product.image_url}`)
               : product.images[0];

@@ -89,7 +89,7 @@ export default function CartPage() {
               <div key={`${item.id}-${item.selectedSize}`} className="bg-white p-6 rounded-2xl shadow-sm">
                 <div className="flex gap-4">
                   <img 
-                    src={item.images[0]} 
+                    src={item.images?.[0] || item.image_url || 'https://via.placeholder.com/100'} 
                     alt={item.name}
                     className="w-24 h-24 object-cover rounded-xl"
                   />
@@ -126,8 +126,8 @@ export default function CartPage() {
                       </div>
                       
                       <div className="text-right">
-                        <p className="font-bold text-lg">₹{(item.price * item.quantity).toLocaleString('en-IN')}</p>
-                        <p className="text-sm text-gray-500">₹{item.price.toLocaleString('en-IN')} each</p>
+                        <p className="font-bold text-lg">₹{((item.price || 0) * item.quantity).toLocaleString('en-IN')}</p>
+                        <p className="text-sm text-gray-500">₹{(item.price || 0).toLocaleString('en-IN')} each</p>
                       </div>
                     </div>
                   </div>

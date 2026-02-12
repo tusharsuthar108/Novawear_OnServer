@@ -8,12 +8,16 @@ const CategoryPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [colors, setColors] = useState([]);
+  const [sizes, setSizes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("recommended");
   const [currentPage, setCurrentPage] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
+  const [selectedColors, setSelectedColors] = useState([]);
+  const [selectedSizes, setSelectedSizes] = useState([]);
   const itemsPerPage = 30;
 
   useEffect(() => {
@@ -23,19 +27,25 @@ const CategoryPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [productsRes, categoriesRes, brandsRes] = await Promise.all([
+      const [productsRes, categoriesRes, brandsRes, colorsRes, sizesRes] = await Promise.all([
         fetch('http://localhost:3000/api/products'),
         fetch('http://localhost:3000/api/categories'),
-        fetch('http://localhost:3000/api/brands')
+        fetch('http://localhost:3000/api/brands'),
+        fetch('http://localhost:3000/api/colors'),
+        fetch('http://localhost:3000/api/sizes')
       ]);
       
       const productsData = await productsRes.json();
       const categoriesData = await categoriesRes.json();
       const brandsData = await brandsRes.json();
+      const colorsData = await colorsRes.json();
+      const sizesData = await sizesRes.json();
       
       setProducts(productsData.success ? productsData.data : productsData);
       setCategories(categoriesData.success ? categoriesData.data : categoriesData);
       setBrands(brandsData.success ? brandsData.data : brandsData);
+      setColors(colorsData.success ? colorsData.data : colorsData);
+      setSizes(sizesData.success ? sizesData.data : sizesData);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -109,6 +119,20 @@ const CategoryPage = () => {
   const handleBrandFilter = (brandId) => {
     setSelectedBrands(prev => 
       prev.includes(brandId) ? prev.filter(id => id !== brandId) : [...prev, brandId]
+    );
+    setCurrentPage(1);
+  };
+
+  const handleColorFilter = (colorId) => {
+    setSelectedColors(prev => 
+      prev.includes(colorId) ? prev.filter(id => id !== colorId) : [...prev, colorId]
+    );
+    setCurrentPage(1);
+  };
+
+  const handleSizeFilter = (sizeId) => {
+    setSelectedSizes(prev => 
+      prev.includes(sizeId) ? prev.filter(id => id !== sizeId) : [...prev, sizeId]
     );
     setCurrentPage(1);
   };
@@ -233,8 +257,16 @@ const CategoryPage = () => {
                   <section>
                     <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-5">Colors</h3>
                     <div className="flex flex-wrap gap-3">
-                      {["bg-black", "bg-white border", "bg-blue-600", "bg-red-500", "bg-green-600", "bg-yellow-400", "bg-pink-500", "bg-gray-500"].map((color, idx) => (
-                        <button key={idx} className={`w-6 h-6 rounded-full shadow-sm ${color} ring-1 ring-offset-1 ring-transparent`}></button>
+                      {colors.map((color) => (
+                        <button 
+                          key={color.color_id}
+                          onClick={() => handleColorFilter(color.color_id)}
+                          className={`w-8 h-8 rounded-full shadow-sm ring-2 ring-offset-2 transition ${
+                            selectedColors.includes(color.color_id) ? 'ring-black' : 'ring-transparent'
+                          }`}
+                          style={{ backgroundColor: color.hex_code }}
+                          title={color.color_name}
+                        />
                       ))}
                     </div>
                   </section>
@@ -245,9 +277,17 @@ const CategoryPage = () => {
                   <section>
                     <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-5">Size</h3>
                     <div className="grid grid-cols-3 gap-2">
-                      {["XS", "S", "M", "L", "XL", "XXL"].map((size) => (
-                        <button key={size} className="border border-gray-200 rounded py-2 text-sm font-medium hover:border-black hover:bg-black hover:text-white transition">
-                          {size}
+                      {sizes.map((size) => (
+                        <button 
+                          key={size.size_id}
+                          onClick={() => handleSizeFilter(size.size_id)}
+                          className={`border rounded py-2 text-sm font-medium transition ${
+                            selectedSizes.includes(size.size_id)
+                              ? 'border-black bg-black text-white'
+                              : 'border-gray-200 hover:border-black hover:bg-black hover:text-white'
+                          }`}
+                        >
+                          {size.size_name.toUpperCase()}
                         </button>
                       ))}
                     </div>
@@ -334,8 +374,16 @@ const CategoryPage = () => {
               <section>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-5">Colors</h3>
                 <div className="flex flex-wrap gap-3">
-                  {["bg-black", "bg-white border", "bg-blue-600", "bg-red-500", "bg-green-600", "bg-yellow-400", "bg-pink-500", "bg-gray-500"].map((color, idx) => (
-                    <button key={idx} className={`w-6 h-6 rounded-full shadow-sm hover:scale-110 transition ${color} cursor-pointer ring-1 ring-offset-1 ring-transparent hover:ring-gray-300`}></button>
+                  {colors.map((color) => (
+                    <button 
+                      key={color.color_id}
+                      onClick={() => handleColorFilter(color.color_id)}
+                      className={`w-8 h-8 rounded-full shadow-sm ring-2 ring-offset-2 transition hover:scale-110 ${
+                        selectedColors.includes(color.color_id) ? 'ring-black' : 'ring-transparent hover:ring-gray-300'
+                      }`}
+                      style={{ backgroundColor: color.hex_code }}
+                      title={color.color_name}
+                    />
                   ))}
                 </div>
               </section>
@@ -346,9 +394,17 @@ const CategoryPage = () => {
               <section>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-5">Size</h3>
                 <div className="grid grid-cols-3 gap-2">
-                  {["XS", "S", "M", "L", "XL", "XXL"].map((size) => (
-                    <button key={size} className="border border-gray-200 rounded py-2 text-sm font-medium hover:border-black hover:bg-black hover:text-white transition">
-                      {size}
+                  {sizes.map((size) => (
+                    <button 
+                      key={size.size_id}
+                      onClick={() => handleSizeFilter(size.size_id)}
+                      className={`border rounded py-2 text-sm font-medium transition ${
+                        selectedSizes.includes(size.size_id)
+                          ? 'border-black bg-black text-white'
+                          : 'border-gray-200 hover:border-black hover:bg-black hover:text-white'
+                      }`}
+                    >
+                      {size.size_name.toUpperCase()}
                     </button>
                   ))}
                 </div>

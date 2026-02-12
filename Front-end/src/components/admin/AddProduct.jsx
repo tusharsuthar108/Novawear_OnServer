@@ -9,6 +9,16 @@ const getCode = (str, len = 3) => {
 };
 
 const generateFullSKU = (data, brands, sizesList, colorList) => {
+    // Helper to generate a random alphanumeric string
+    const generateRandomSuffix = (length = 4) => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    };
+
     // 1. Brand
     const brandObj = brands.find(b => b.brand_id == data.brand);
     const brandCode = brandObj ? getCode(brandObj.brand_slug || brandObj.brand_name) : 'XXX';
@@ -29,8 +39,11 @@ const generateFullSKU = (data, brands, sizesList, colorList) => {
 
     const sizeObj = sizesList.find(s => s.size_id == firstVariant?.attributes?.Size);
     const sizeCode = sizeObj ? sizeObj.size_name : "XX";
+    
+    // 5. Random Suffix to prevent duplicates
+    const randomSuffix = generateRandomSuffix(4);
 
-    return `${brandCode}-${catSegment}-${styleCode}-${colorCode}-${sizeCode}`.toUpperCase();
+    return `${brandCode}-${catSegment}-${styleCode}-${colorCode}-${sizeCode}-${randomSuffix}`.toUpperCase();
 };
 
 /* ================= MAIN COMPONENT ================= */
