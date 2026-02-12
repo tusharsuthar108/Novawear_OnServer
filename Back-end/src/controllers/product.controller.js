@@ -3,10 +3,16 @@ const pool = require('../config/database');
 exports.getAllProducts = async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT p.*, b.brand_name 
+      SELECT DISTINCT ON (p.product_id)
+        p.*, 
+        b.brand_name,
+        pv.price,
+        pv.discount_price
       FROM products p 
       LEFT JOIN brands b ON p.brand_id = b.brand_id 
-      ORDER BY p.name
+      LEFT JOIN product_variants pv ON p.product_id = pv.product_id
+      WHERE p.is_active = true
+      ORDER BY p.product_id, pv.price ASC
     `);
     res.json({ success: true, data: result.rows });
   } catch (error) {

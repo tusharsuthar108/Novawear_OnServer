@@ -123,8 +123,8 @@ export default function CardSlider({ badgeType = "trending", customTitle }) {
             const imageUrl = isDbProduct 
               ? (product.image_url?.startsWith('http') ? product.image_url : `http://localhost:3000${product.image_url}`)
               : product.images[0];
-            const price = isDbProduct ? parseFloat(product.price || 0) : product.price;
-            const mrp = isDbProduct ? parseFloat(product.mrp || 0) : product.oldPrice;
+            const price = isDbProduct ? parseFloat(product.discount_price || product.price || 0) : product.price;
+            const mrp = isDbProduct ? parseFloat(product.price || 0) : product.oldPrice;
             const brandName = isDbProduct ? (product.brand_name || 'NovaWear') : product.brand;
             const discount = isDbProduct 
               ? (product.discount_percentage || 0)
