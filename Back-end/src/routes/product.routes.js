@@ -25,6 +25,9 @@ const upload = multer({ storage: storage });
 // Get all products
 router.get("/", productController.getAllProducts);
 
+// Get product by ID with images
+router.get("/:id", productController.getProductById);
+
 // Use upload.array because we are sending multiple variant images
 router.post("/", upload.array("variantImage"), productController.createProduct);
 

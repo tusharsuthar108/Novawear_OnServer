@@ -3,17 +3,19 @@ import {
   Eye, Edit3, Trash2, Plus,
   Search, Filter, Folder, Layers, CheckCircle
 } from 'lucide-react';
-// Import your modal component
 import CategoryAdd from './CategoryAdd';
 import CategoryView from './CategoryView';
+import CategoryEdit from './CategoryEdit';
 import { fetchMasterCategories } from '../../api/masterCategory.api';
 import { fetchCategories, createCategory, deleteCategory } from '../../api/Category.api';
 import { testBackendConnection, testCategoriesEndpoint } from '../../api/test.api';
+import { PLACEHOLDER_IMAGE } from '../../utils/constants';
 
 const Category = () => {
   // --- STATE FOR MODAL ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   // State for categories fetched from database
@@ -187,19 +189,75 @@ const Category = () => {
     setIsViewModalOpen(true);
   };
 
-  // --- DELETE LOGIC ---
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
-      try {
-        await deleteCategory(id);
-        // Refresh categories list
+  // --- EDIT LOGIC ---
+  const handleEdit = (category) => {
+    setSelectedCategory(category);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateCategory = async (formData) => {
+    try {
+      console.log('Updating category:', selectedCategory.category_id);
+      const response = await fetch(`http://localhost:3000/api/categories/${selectedCategory.category_id}`, {
+        method: 'PUT',
+        body: formData
+      });
+      const data = await response.json();
+      if (data.success) {
         const updatedResponse = await fetchCategories();
         if (updatedResponse.success) {
           setCategories(updatedResponse.data);
         }
-      } catch (error) {
-        console.error('Error deleting category:', error);
-        setError('Failed to delete category');
+        setIsEditModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Error updating category:', error);
+    }
+  };
+
+  // --- DELETE LOGIC ---
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this category?')) {
+      return;
+    }
+
+    try {
+      const response = await deleteCategory(id, false);
+      if (response.success) {
+        const updatedResponse = await fetchCategories();
+        if (updatedResponse.success) {
+          setCategories(updatedResponse.data);
+        }
+        alert('Category deleted successfully!');
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      const errorMsg = error?.error || error?.message || 'Failed to delete category';
+      
+      if (errorMsg.toLowerCase().includes('subcategory') || 
+          errorMsg.toLowerCase().includes('subcategories') || 
+          errorMsg.toLowerCase().includes('product')) {
+        const confirmCascade = window.confirm(
+          `${errorMsg}\n\nDo you want to delete the category along with all its subcategories and products?\n\nWarning: This action cannot be undone!`
+        );
+        
+        if (confirmCascade) {
+          try {
+            const cascadeResponse = await deleteCategory(id, true);
+            if (cascadeResponse.success) {
+              const updatedResponse = await fetchCategories();
+              if (updatedResponse.success) {
+                setCategories(updatedResponse.data);
+              }
+              alert('Category and all related items deleted successfully!');
+            }
+          } catch (cascadeError) {
+            console.error('Cascade delete error:', cascadeError);
+            alert(cascadeError?.error || cascadeError?.message || 'Failed to delete category');
+          }
+        }
+      } else {
+        alert(errorMsg);
       }
     }
   };
@@ -416,7 +474,7 @@ const Category = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <img
-                          src={cat.icon_url || "https://via.placeholder.com/80"}
+                          src={cat.icon_url || PLACEHOLDER_IMAGE}
                           alt={cat.name}
                           className="w-12 h-12 rounded-xl object-cover border border-slate-100 shadow-sm shrink-0"
                         />
@@ -458,7 +516,13 @@ const Category = () => {
                         >
                           <Eye size={18} />
                         </button>
-                        <button className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Edit"><Edit3 size={18} /></button>
+                        <button 
+                          onClick={() => handleEdit(cat)}
+                          className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" 
+                          title="Edit"
+                        >
+                          <Edit3 size={18} />
+                        </button>
                         <button 
                           onClick={() => handleDelete(cat.category_id)}
                           className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" 
@@ -499,6 +563,14 @@ const Category = () => {
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         category={selectedCategory}
+      />
+      
+      <CategoryEdit 
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleUpdateCategory}
+        categoryData={selectedCategory}
+        masterCategories={masterCategories}
       />
     </div>
   );

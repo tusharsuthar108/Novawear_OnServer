@@ -85,4 +85,7 @@ app.use("/api/patterns", patternRoutes);
 const sizeRoutes = require("./routes/size.routes");
 app.use("/api/sizes", sizeRoutes);
 
+const userProfileRoutes = require("./routes/userProfile.routes");
+app.use("/api/user-profile", userProfileRoutes);
+
 module.exports = app;

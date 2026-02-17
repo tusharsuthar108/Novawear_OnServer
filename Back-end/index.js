@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -86,9 +87,24 @@ app.get('/api/products', async (req, res) => {
   try {
     const pool = require('./src/config/database');
     const result = await pool.query(`
-      SELECT p.*, b.brand_name 
+      SELECT 
+        p.*,
+        b.brand_name,
+        json_agg(
+          json_build_object(
+            'variant_id', pv.variant_id,
+            'price', pv.price,
+            'discount_price', pv.discount_price,
+            'size_name', s.size_name,
+            'color_name', c.color_name
+          )
+        ) FILTER (WHERE pv.variant_id IS NOT NULL) as variants
       FROM products p 
-      LEFT JOIN brands b ON p.brand_id = b.brand_id 
+      LEFT JOIN brands b ON p.brand_id = b.brand_id
+      LEFT JOIN product_variants pv ON p.product_id = pv.product_id
+      LEFT JOIN sizes s ON pv.size_id = s.size_id
+      LEFT JOIN colors c ON pv.color_id = c.color_id
+      GROUP BY p.product_id, b.brand_name
       ORDER BY p.name
     `);
     res.json({ success: true, data: result.rows });
@@ -230,6 +246,38 @@ try {
       );
       res.status(201).json({ success: true, data: result.rows[0] });
     } catch (err) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  });
+
+  app.delete('/api/categories/:id', async (req, res) => {
+    const { id } = req.params;
+    console.log('Delete request for category ID:', id);
+    try {
+      const pool = require('./src/config/database');
+      const productCheck = await pool.query(
+        'SELECT COUNT(*) as count FROM products WHERE category_id = $1',
+        [id]
+      );
+      
+      if (parseInt(productCheck.rows[0].count) > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          error: `Cannot delete. Category has ${productCheck.rows[0].count} product(s). Remove products first.` 
+        });
+      }
+
+      const result = await pool.query(
+        'DELETE FROM categories WHERE category_id=$1 RETURNING *',
+        [id]
+      );
+      if (result.rowCount === 0) {
+        return res.status(404).json({ success: false, error: 'Category not found' });
+      }
+      console.log('Category deleted successfully:', id);
+      res.json({ success: true, message: 'Category deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting category:', err.message);
       res.status(400).json({ success: false, error: err.message });
     }
   });
@@ -566,6 +614,15 @@ try {
   console.error('❌ Failed to load user routes:', error.message);
 }
 
+// Import and use User Profile routes
+try {
+  const userProfileRoutes = require('./src/routes/userProfile.routes');
+  app.use('/api/user-profile', userProfileRoutes);
+  console.log('✅ User Profile routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load user profile routes:', error.message);
+}
+
 // Import and use Cart routes
 try {
   const cartRoutes = require('./src/routes/cart.routes');
@@ -622,13 +679,11 @@ try {
 } catch (error) {
   console.error('❌ Failed to load product badge routes:', error.message);
   
-  // Add product badge route directly as fallback - simplified version
   app.get('/api/product-badges/badge-type/:badgeType', async (req, res) => {
     try {
       const pool = require('./src/config/database');
       const { badgeType } = req.params;
       
-      // Just return all active products for now since badge filtering might not be set up
       const result = await pool.query(`
         SELECT p.*, b.brand_name
         FROM products p
@@ -646,6 +701,15 @@ try {
   });
   
   console.log('✅ Product Badge routes added directly');
+}
+
+// Import and use Product Image routes
+try {
+  const productImageRoutes = require('./src/routes/productImage.routes');
+  app.use('/api/product-images', productImageRoutes);
+  console.log('✅ Product Image routes loaded');
+} catch (error) {
+  console.error('❌ Failed to load product image routes:', error.message);
 }
 
 app.listen(PORT, () => {

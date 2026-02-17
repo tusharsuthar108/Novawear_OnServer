@@ -13,19 +13,19 @@ export default function CardSlider({ badgeType = "trending", customTitle }) {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // Use regular products API instead of badge API
         const response = await fetch('http://localhost:3000/api/products');
         const data = await response.json();
+        console.log('Products API Response:', data);
         if (data.success && data.data && data.data.length > 0) {
+          console.log('First product:', data.data[0]);
+          console.log('First product variants:', data.data[0].variants);
           setProducts(data.data);
         } else {
-          // Fallback to dummy data if no products found
           const filtered = dummyProducts.filter(product => product.badgeType === badgeType);
           setProducts(filtered);
         }
       } catch (error) {
         console.error('Error fetching products:', error);
-        // Fallback to dummy data on error
         const filtered = dummyProducts.filter(product => product.badgeType === badgeType);
         setProducts(filtered);
       } finally {
@@ -123,12 +123,22 @@ export default function CardSlider({ badgeType = "trending", customTitle }) {
             const imageUrl = isDbProduct 
               ? (product.image_url?.startsWith('http') ? product.image_url : `http://localhost:3000${product.image_url}`)
               : product.images[0];
-            const price = isDbProduct ? parseFloat(product.price || 0) : product.price;
-            const mrp = isDbProduct ? parseFloat(product.mrp || 0) : product.oldPrice;
+            
+            // Get price from variants if database product
+            let price = 0;
+            let mrp = 0;
+            if (isDbProduct && product.variants && product.variants.length > 0) {
+              const variant = product.variants[0];
+              price = parseFloat(variant.discount_price || variant.price || 0);
+              mrp = parseFloat(variant.price || 0);
+              console.log(`Product: ${productName}, Price: ${price}, MRP: ${mrp}, Variant:`, variant);
+            } else if (!isDbProduct) {
+              price = product.price;
+              mrp = product.oldPrice;
+            }
+            
             const brandName = isDbProduct ? (product.brand_name || 'NovaWear') : product.brand;
-            const discount = isDbProduct 
-              ? (product.discount_percentage || 0)
-              : (product.discount ? parseInt(product.discount) : Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100));
+            const discount = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
             const rating = isDbProduct ? 4.5 : product.rating;
             const availableSize = isDbProduct ? 'M' : product.availableSizes[0];
             
@@ -183,9 +193,15 @@ export default function CardSlider({ badgeType = "trending", customTitle }) {
                   
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-base font-black text-black leading-none">₹{price.toLocaleString('en-IN')}</span>
-                      {mrp > price && (
-                        <span className="text-[10px] text-gray-400 line-through font-medium">₹{mrp.toLocaleString('en-IN')}</span>
+                      {price > 0 ? (
+                        <>
+                          <span className="text-base font-black text-black leading-none">₹{price.toLocaleString('en-IN')}</span>
+                          {mrp > price && (
+                            <span className="text-[10px] text-gray-400 line-through font-medium">₹{mrp.toLocaleString('en-IN')}</span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-[10px] text-gray-400 font-medium">Price not set</span>
                       )}
                     </div>
                     

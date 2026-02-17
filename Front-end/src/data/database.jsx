@@ -200,6 +200,80 @@ export const categories = [
       },
     ],
   },
+
+  // ================= WOMEN (MASTER CATEGORY) =================
+  {
+    id: 2,
+    name: "Women",
+    slug: "women",
+    type: "category",
+    subCategories: [
+      {
+        id: 50,
+        name: "Bags",
+        slug: "bags",
+        subCategories: [
+          {
+            id: 51,
+            name: "Handbags",
+            slug: "handbags",
+            types: [
+              { id: 511, name: "Tote Bags", slug: "tote-bags" },
+              { id: 512, name: "Shoulder Bags", slug: "shoulder-bags" },
+            ],
+          },
+        ],
+      },
+      {
+        id: 60,
+        name: "Footwear",
+        slug: "footwear",
+        subCategories: [
+          {
+            id: 61,
+            name: "Heels",
+            slug: "heels",
+            types: [
+              { id: 611, name: "High Heels", slug: "high-heels" },
+              { id: 612, name: "Wedges", slug: "wedges" },
+            ],
+          },
+        ],
+      },
+      {
+        id: 70,
+        name: "Accessories",
+        slug: "accessories",
+        subCategories: [
+          {
+            id: 71,
+            name: "Jewelry",
+            slug: "jewelry",
+            types: [
+              { id: 711, name: "Necklaces", slug: "necklaces" },
+              { id: 712, name: "Earrings", slug: "earrings" },
+            ],
+          },
+        ],
+      },
+      {
+        id: 80,
+        name: "Sleepwear",
+        slug: "sleepwear",
+        subCategories: [
+          {
+            id: 81,
+            name: "Nightwear",
+            slug: "nightwear",
+            types: [
+              { id: 811, name: "Pajamas", slug: "pajamas" },
+              { id: 812, name: "Robes", slug: "robes" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export const products = [
@@ -242,11 +316,11 @@ export const products = [
 
     stock: true,
     images: [
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a",
-      "https://images.unsplash.com/photo-1602810319428-019690571b5b",
+      "https://images.unsplash.com/photo-1618354691373-d851c5c3a990",
+      "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633",
+      "https://images.unsplash.com/photo-1620799139507-2a76f79a2f4d",
+      "https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77",
+      "https://images.unsplash.com/photo-1620799139834-6b8f844fbe61",
     ],
 
     badgeType: "trending",
@@ -292,11 +366,11 @@ export const products = [
 
     stock: true,
     images: [
-      "https://images.unsplash.com/photo-1596755094514-f87e34085b2c",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a",
-      "https://images.unsplash.com/photo-1602810319428-019690571b5b",
+      "https://images.unsplash.com/photo-1622445275576-721325763afe",
+      "https://images.unsplash.com/photo-1622519407650-3df9883f76a4",
+      "https://images.unsplash.com/photo-1622445272461-c6580cab8755",
+      "https://images.unsplash.com/photo-1622445275047-c9f0c799d29c",
+      "https://images.unsplash.com/photo-1622445274639-5e1a4b6b9a00",
     ],
 
     badgeType: "bestseller",
@@ -342,11 +416,11 @@ export const products = [
 
     stock: true,
     images: [
-      "https://images.unsplash.com/photo-1586790170083-2f9ceadc732d",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a",
-      "https://images.unsplash.com/photo-1602810319428-019690571b5b",
+      "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e",
+      "https://images.unsplash.com/photo-1607345366899-a0e8f0fadf3b",
+      "https://images.unsplash.com/photo-1607345366855-c2c2e6e4e5e5",
+      "https://images.unsplash.com/photo-1607345366777-d1d1d1d1d1d1",
+      "https://images.unsplash.com/photo-1607345366666-e2e2e2e2e2e2",
     ],
 
     badgeType: "new",
@@ -391,11 +465,11 @@ export const products = [
 
     stock: true,
     images: [
-      "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a",
-      "https://images.unsplash.com/photo-1602810319428-019690571b5b",
+      "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf",
+      "https://images.unsplash.com/photo-1602810318660-d7d8f2a13d85",
+      "https://images.unsplash.com/photo-1602810318524-64d3b6e5e5e5",
+      "https://images.unsplash.com/photo-1602810318777-f1f1f1f1f1f1",
+      "https://images.unsplash.com/photo-1602810318888-a2a2a2a2a2a2",
     ],
 
     badgeType: "trending",
@@ -440,11 +514,11 @@ export const products = [
 
     stock: true,
     images: [
-      "https://images.unsplash.com/photo-1556821840-3a63f95609a7",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a",
-      "https://images.unsplash.com/photo-1602810319428-019690571b5b",
+      "https://images.unsplash.com/photo-1598032895397-b9c644e8c8e5",
+      "https://images.unsplash.com/photo-1598032895555-c1c1c1c1c1c1",
+      "https://images.unsplash.com/photo-1598032895666-d2d2d2d2d2d2",
+      "https://images.unsplash.com/photo-1598032895777-e3e3e3e3e3e3",
+      "https://images.unsplash.com/photo-1598032895888-f4f4f4f4f4f4",
     ],
 
     badgeType: "trending",
@@ -489,11 +563,11 @@ export const products = [
 
     stock: true,
     images: [
-      "https://images.unsplash.com/photo-1551028719-00167b16eac5",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a",
-      "https://images.unsplash.com/photo-1602810319428-019690571b5b",
+      "https://images.unsplash.com/photo-1542272604-787c3835535d",
+      "https://images.unsplash.com/photo-1541099649105-f69ad21f3246",
+      "https://images.unsplash.com/photo-1475178626620-a4d074967452",
+      "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a",
+      "https://images.unsplash.com/photo-1519501025264-65ba15a82390",
     ],
 
     badgeType: "bestseller",
@@ -537,11 +611,11 @@ export const products = [
 
     stock: true,
     images: [
-      "https://images.unsplash.com/photo-1542272604-787c3835535d",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a",
-      "https://images.unsplash.com/photo-1602810319428-019690571b5b",
+      "https://images.unsplash.com/photo-1565084888279-aca607ecce0c",
+      "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80",
+      "https://images.unsplash.com/photo-1624378440070-5d2b47f73c00",
+      "https://images.unsplash.com/photo-1624378440155-c3c3c3c3c3c3",
+      "https://images.unsplash.com/photo-1624378440266-d4d4d4d4d4d4",
     ],
 
     badgeType: "trending",
@@ -585,11 +659,11 @@ export const products = [
 
     stock: true,
     images: [
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a",
-      "https://images.unsplash.com/photo-1602810319428-019690571b5b",
+      "https://images.unsplash.com/photo-1473691955023-da1c49c95c78",
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d",
+      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7",
+      "https://images.unsplash.com/photo-1488161628813-04466f872be2",
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
     ],
 
     badgeType: "trending",
@@ -633,11 +707,11 @@ export const products = [
 
     stock: true,
     images: [
-      "https://images.unsplash.com/photo-1622445275576-721325763afe",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a",
-      "https://images.unsplash.com/photo-1602810319428-019690571b5b",
+      "https://images.unsplash.com/photo-1551028719-00167b16eac5",
+      "https://images.unsplash.com/photo-1520975954732-35dd22299614",
+      "https://images.unsplash.com/photo-1591047139829-d91aecb6caea",
+      "https://images.unsplash.com/photo-1520975661595-6453be3f7070",
+      "https://images.unsplash.com/photo-1520975954732-35dd22299614",
     ],
 
     badgeType: "new",
@@ -681,11 +755,11 @@ export const products = [
 
     stock: true,
     images: [
-      "https://images.unsplash.com/photo-1622519407650-3df9883f76a4",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a",
-      "https://images.unsplash.com/photo-1602810319428-019690571b5b",
+      "https://images.unsplash.com/photo-1523381294911-8d3cead13475",
+      "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59",
+      "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59",
+      "https://images.unsplash.com/photo-1523381294911-8d3cead13475",
+      "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59",
     ],
 
     badgeType: "trending",

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Mail, ArrowRight, ShoppingBag, ArrowLeft, Shield, Zap, Lock, Key, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
 
 const API_BASE_URL = 'http://localhost:3000/api';
 
 const Login = () => {
+  const { syncCartOnLogin } = useCart();
   const [step, setStep] = useState(1); // 1: Email, 2: OTP
   const [loginMethod, setLoginMethod] = useState('otp'); // 'otp' or 'password'
   const [email, setEmail] = useState('');
@@ -85,9 +87,14 @@ const Login = () => {
             localStorage.removeItem('rememberedPassword');
           }
           
-          // Store user data and redirect based on role
+          // Store user data
           localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('userId', data.user.user_id);
           
+          // Sync cart on login
+          await syncCartOnLogin(data.user.user_id);
+          
+          // Redirect based on role
           if (data.user.role_name === 'ADMIN') {
             window.location.href = '/admin/dashboard';
           } else {
@@ -175,9 +182,14 @@ const Login = () => {
         const data = await response.json();
 
         if (response.ok) {
-          // Store user data and redirect based on role
+          // Store user data
           localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('userId', data.user.user_id);
           
+          // Sync cart on login
+          await syncCartOnLogin(data.user.user_id);
+          
+          // Redirect based on role
           if (data.user.role_name === 'ADMIN') {
             window.location.href = '/admin/dashboard';
           } else {
