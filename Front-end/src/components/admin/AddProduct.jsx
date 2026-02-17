@@ -86,34 +86,65 @@ const AddProduct = () => {
         const fetchData = async () => {
             try {
                 const [brandRes, colorRes, sizeRes, masterRes, fabricRes, patternRes] = await Promise.all([
-                    fetch('http://localhost:3000/api/brands'),
-                    fetch('http://localhost:3000/api/colors'),
-                    fetch('http://localhost:3000/api/sizes'),
-                    fetch('http://localhost:3000/api/master-categories'),
-                    fetch('http://localhost:3000/api/fabrics'),
-                    fetch('http://localhost:3000/api/patterns')
+                    fetch('http://localhost:3000/api/brands').catch(e => ({ ok: false, error: e })),
+                    fetch('http://localhost:3000/api/colors').catch(e => ({ ok: false, error: e })),
+                    fetch('http://localhost:3000/api/sizes').catch(e => ({ ok: false, error: e })),
+                    fetch('http://localhost:3000/api/master-categories').catch(e => ({ ok: false, error: e })),
+                    fetch('http://localhost:3000/api/fabrics').catch(e => ({ ok: false, error: e })),
+                    fetch('http://localhost:3000/api/patterns').catch(e => ({ ok: false, error: e }))
                 ]);
 
-                const brandData = await brandRes.json();
-                const colorData = await colorRes.json();
-                const sizeData = await sizeRes.json();
-                const masterData = await masterRes.json();
-                const fabricData = await fabricRes.json();
-                const patternData = await patternRes.json();
+                const parseResponse = async (res, name) => {
+                    if (!res.ok) {
+                        console.warn(`${name} API failed:`, res.status || res.error);
+                        return [];
+                    }
+                    try {
+                        const data = await res.json();
+                        console.log(`${name} raw response:`, data);
+                        const parsed = Array.isArray(data) ? data : (data.data || data.result || []);
+                        console.log(`${name} parsed:`, parsed);
+                        return parsed;
+                    } catch (e) {
+                        console.warn(`${name} JSON parse error:`, e);
+                        return [];
+                    }
+                };
 
-                console.log('Brand API Response:', brandData);
-                console.log('Brands data:', brandData.data);
-                console.log('Brands count:', brandData.data?.length);
+                const [brandData, colorData, sizeData, masterData, fabricData, patternData] = await Promise.all([
+                    parseResponse(brandRes, 'Brands'),
+                    parseResponse(colorRes, 'Colors'),
+                    parseResponse(sizeRes, 'Sizes'),
+                    parseResponse(masterRes, 'Master Categories'),
+                    parseResponse(fabricRes, 'Fabrics'),
+                    parseResponse(patternRes, 'Patterns')
+                ]);
 
-                if (brandData.success) setBrands(brandData.data);
-                if (colorData.success) setColors(colorData.data);
-                if (sizeData.success) setSizes(sizeData.data);
-                if (masterData.success) setMasterCategories(masterData.data);
-                if (fabricData.success) setFabrics(fabricData.data);
-                if (patternData.success) setPatterns(patternData.data);
+                console.log('Loaded data:', { 
+                    brands: brandData.length, 
+                    colors: colorData.length, 
+                    sizes: sizeData.length, 
+                    masters: masterData.length,
+                    fabrics: fabricData.length,
+                    patterns: patternData.length
+                });
+                console.log('Sample data:', {
+                    brand: brandData[0],
+                    color: colorData[0],
+                    size: sizeData[0],
+                    fabric: fabricData[0],
+                    pattern: patternData[0]
+                });
+
+                setBrands(brandData);
+                setColors(colorData);
+                setSizes(sizeData);
+                setMasterCategories(masterData);
+                setFabrics(fabricData);
+                setPatterns(patternData);
 
             } catch (error) {
-                console.error("Failed to load initial data", error);
+                console.error("Failed to load initial data:", error);
             }
         };
         fetchData();
@@ -125,19 +156,27 @@ const AddProduct = () => {
     const [allProductTypes, setAllProductTypes] = useState([]);
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/categories').then(r => r.json()).then(d => {
-            console.log('Categories loaded:', d.data?.length || 0);
-            setAllCategories(d.data || []);
-        });
-        fetch('http://localhost:3000/api/subcategories').then(r => r.json()).then(d => {
-            console.log('Subcategories loaded:', d.data?.length || 0);
-            setAllSubCategories(d.data || []);
-        });
-        fetch('http://localhost:3000/api/product-types').then(r => r.json()).then(d => {
-            console.log('Product types loaded:', d.data?.length || 0);
-            console.log('Product types data:', d.data);
-            setAllProductTypes(d.data || []);
-        });
+        const parseData = (d) => {
+            console.log('Parsing data:', d);
+            const result = Array.isArray(d) ? d : (d.data || d.result || []);
+            console.log('Parsed result:', result);
+            return result;
+        };
+        
+        fetch('http://localhost:3000/api/categories')
+            .then(r => r.ok ? r.json() : [])
+            .then(d => setAllCategories(parseData(d)))
+            .catch(err => { console.error('Categories error:', err); setAllCategories([]); });
+        
+        fetch('http://localhost:3000/api/subcategories')
+            .then(r => r.ok ? r.json() : [])
+            .then(d => setAllSubCategories(parseData(d)))
+            .catch(err => { console.error('Subcategories error:', err); setAllSubCategories([]); });
+        
+        fetch('http://localhost:3000/api/product-types')
+            .then(r => r.ok ? r.json() : [])
+            .then(d => setAllProductTypes(parseData(d)))
+            .catch(err => { console.error('Product types error:', err); setAllProductTypes([]); });
     }, []);
 
     // Derived state for dropdowns
@@ -211,7 +250,7 @@ const AddProduct = () => {
             }
         } catch (error) {
             console.error("Error submitting form:", error);
-            alert("Submission Failed: server error");
+            alert("Failed to submit product. Check console.");
         }
     };
 

@@ -471,7 +471,7 @@ try {
 
 // Import and use Color routes
 try {
-  const colorRoutes = require('./src/routes/colorRoutes');
+  const colorRoutes = require('./src/routes/color.routes');
   app.use('/api/colors', colorRoutes);
   console.log('✅ Color routes loaded');
 } catch (error) {
@@ -523,7 +523,7 @@ try {
 
 // Import and use Badge routes
 try {
-  const badgeRoutes = require('./src/routes/badgeRoutes');
+  const badgeRoutes = require('./src/routes/badge.routes');
   app.use('/api/badges', badgeRoutes);
   console.log('✅ Badge routes loaded');
 } catch (error) {
@@ -532,7 +532,7 @@ try {
 
 // Import and use Size routes
 try {
-  const sizeRoutes = require('./src/routes/sizeRoutes');
+  const sizeRoutes = require('./src/routes/size.routes');
   app.use('/api/sizes', sizeRoutes);
   console.log('✅ Size routes loaded');
 } catch (error) {
@@ -541,7 +541,7 @@ try {
 
 // Import and use Fabric routes
 try {
-  const fabricRoutes = require('./src/routes/fabricRoutes');
+  const fabricRoutes = require('./src/routes/fabric.routes');
   app.use('/api/fabrics', fabricRoutes);
   console.log('✅ Fabric routes loaded');
 } catch (error) {
@@ -550,7 +550,7 @@ try {
 
 // Import and use Pattern routes
 try {
-  const patternRoutes = require('./src/routes/patternRoutes');
+  const patternRoutes = require('./src/routes/pattern.routes');
   app.use('/api/patterns', patternRoutes);
   console.log('✅ Pattern routes loaded');
 } catch (error) {
@@ -616,7 +616,7 @@ try {
 
 // Import and use Product Badge routes
 try {
-  const productBadgeRoutes = require('./src/routes/productBadgeRoutes');
+  const productBadgeRoutes = require('./src/routes/productBadge.routes');
   app.use('/api/product-badges', productBadgeRoutes);
   console.log('✅ Product Badge routes loaded');
 } catch (error) {
