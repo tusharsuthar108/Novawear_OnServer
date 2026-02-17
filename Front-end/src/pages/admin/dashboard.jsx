@@ -41,7 +41,7 @@ import AdminOrders from "./Orders";
 import OrderDetails from "../../components/admin/OrderDetails";
 import Transactions from "../../components/admin/Transactions";
 import PricingPlans from "../../components/admin/PricingPlans";
-import Productpricing from "../../components/admin/Productpricing";
+import Productpricing from "../../components/admin/ProductPricing";
 import DiscountsCoupons from "../../components/admin/DiscountsCoupons";
 import TaxesFees from "../../components/admin/TaxesFees";
 import InventoryWorking from "../../components/admin/InventoryWorking";

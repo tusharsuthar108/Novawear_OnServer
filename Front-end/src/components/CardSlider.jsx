@@ -123,6 +123,7 @@ export default function CardSlider({ badgeType = "trending", customTitle }) {
             const imageUrl = isDbProduct 
               ? (product.image_url?.startsWith('http') ? product.image_url : `http://localhost:3000${product.image_url}`)
               : product.images[0];
+<<<<<<< HEAD
             
             // Get price from variants if database product
             let price = 0;
@@ -137,6 +138,10 @@ export default function CardSlider({ badgeType = "trending", customTitle }) {
               mrp = product.oldPrice;
             }
             
+=======
+            const price = isDbProduct ? parseFloat(product.discount_price || product.price || 0) : product.price;
+            const mrp = isDbProduct ? parseFloat(product.price || 0) : product.oldPrice;
+>>>>>>> 1e16d4f0bce9d611a4c71011725593423244d8e5
             const brandName = isDbProduct ? (product.brand_name || 'NovaWear') : product.brand;
             const discount = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
             const rating = isDbProduct ? 4.5 : product.rating;

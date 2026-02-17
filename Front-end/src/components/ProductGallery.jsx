@@ -290,7 +290,7 @@ export default function ProductGallery({ category, mainCategory, subCategory }) 
                         ) : product.price ? (
                           <span className="text-2xl font-bold text-gray-900">₹{parseFloat(product.price).toLocaleString('en-IN')}</span>
                         ) : (
-                          <span className="text-xl font-bold text-gray-900">₹</span>
+                          <span className="text-xl font-bold text-gray-900">Price not available</span>
                         )}
                       </div>
                     </div>
