@@ -10,12 +10,14 @@ try {
   const {
     getMasterCategories,
     createMasterCategory,
+    updateMasterCategory,
     deleteMasterCategory,
     upload
   } = require("../controllers/masterCategory.controller");
 
   router.get("/", getMasterCategories);
   router.post("/", upload.single('image'), createMasterCategory);
+  router.put("/:id", upload.single('image'), updateMasterCategory);
   router.delete("/:id", deleteMasterCategory);
 } catch (error) {
   console.error('Controller loading error:', error);

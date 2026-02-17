@@ -284,15 +284,27 @@ const EditBrandForm = ({ brand, onSave, onCancel }) => {
             />
           </div>
           <div>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.is_active}
-                onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
-                className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
-              />
-              <span className="text-sm text-slate-600">Active</span>
-            </label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Status</label>
+            <div className="flex mt-2 bg-slate-100 p-1 rounded-2xl">
+              <button
+                type="button"
+                onClick={() => setFormData({...formData, is_active: true})}
+                className={`flex-1 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+                  formData.is_active ? "bg-white shadow-sm text-green-600" : "text-slate-500"
+                }`}
+              >
+                Active
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({...formData, is_active: false})}
+                className={`flex-1 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+                  !formData.is_active ? "bg-white shadow-sm text-red-600" : "text-slate-500"
+                }`}
+              >
+                Inactive
+              </button>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">New Logo (optional)</label>

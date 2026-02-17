@@ -218,22 +218,24 @@ const MasterCategoryEdit = ({ isOpen, onClose, onSave, categoryData }) => {
                   onClick={() =>
                     setFormData({ ...formData, is_active: true })
                   }
-                  className={`flex-1 py-2 rounded-xl ${
-                    formData.is_active && "bg-white shadow text-indigo-600"
+                  className={`flex-1 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+                    formData.is_active ? "bg-white shadow-sm text-green-600" : "text-slate-500"
                   }`}
                 >
-                  <Check size={16} /> Active
+                  <Check size={16} />
+                  Active
                 </button>
                 <button
                   type="button"
                   onClick={() =>
                     setFormData({ ...formData, is_active: false })
                   }
-                  className={`flex-1 py-2 rounded-xl ${
-                    !formData.is_active && "bg-white shadow"
+                  className={`flex-1 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+                    !formData.is_active ? "bg-white shadow-sm text-red-600" : "text-slate-500"
                   }`}
                 >
-                  <AlertCircle size={16} /> Inactive
+                  <AlertCircle size={16} />
+                  Inactive
                 </button>
               </div>
             </div>

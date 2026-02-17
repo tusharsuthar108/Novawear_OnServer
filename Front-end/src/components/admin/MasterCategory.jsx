@@ -6,7 +6,7 @@ import {
 import MasterCategoryAdd from './MasterCategoryAdd';
 import MasterCategoryView from './MasterCategoryView';
 import MasterCategoryEdit from './MasterCategoryEdit';
-import { deleteMasterCategory } from '../../api/masterCategory.api';
+import { deleteMasterCategory, updateMasterCategory } from '../../api/masterCategory.api';
 import { PLACEHOLDER_IMAGE } from '../../utils/constants';
 
 const MasterCategory = () => {
@@ -115,19 +115,11 @@ const MasterCategory = () => {
   const handleUpdateCategory = async (formData) => {
     try {
       setError(null);
-      const response = await fetch(`${API_BASE_URL}/${selectedCategory.master_category_id}`, {
-        method: 'PUT',
-        body: formData,
-      });
-      
-      if (response.ok) {
-        setSuccess('Category updated successfully!');
-        fetchCategories();
-        setIsEditModalOpen(false);
-        setTimeout(() => setSuccess(null), 3000);
-      } else {
-        throw new Error('Failed to update category');
-      }
+      await updateMasterCategory(selectedCategory.master_category_id, formData);
+      setSuccess('Category updated successfully!');
+      fetchCategories();
+      setIsEditModalOpen(false);
+      setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       setError(`Update failed: ${error.message}`);
     }

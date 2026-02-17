@@ -527,24 +527,36 @@ const FloatingInput = ({ label, type = "text", value, onChange }) => (
     </div>
 );
 
-const ModernSelect = ({ label, options = [], value, onChange, disabled, valueKey = "id", labelKey = "name" }) => (
-    <div className="w-full">
-        <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">{label}</label>
-        <select
-            disabled={disabled}
-            value={value ? value[valueKey] : ""}
-            onChange={(e) => onChange(options.find((o) => o[valueKey] === Number(e.target.value)))}
-            className={`w-full rounded-xl px-4 py-3 border-2 text-sm transition-all outline-none ${disabled
-                ? "bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed"
-                : "bg-slate-50/50 border-slate-100 text-slate-700 hover:border-indigo-200 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-                }`}
-        >
-            <option value="">Choose {label}</option>
-            {options.map((o) => (
-                <option key={o[valueKey]} value={o[valueKey]}>{o[labelKey]}</option>
-            ))}
-        </select>
-    </div>
-);
+const ModernSelect = ({ label, options = [], value, onChange, disabled, valueKey = "id", labelKey = "name" }) => {
+    const handleChange = (e) => {
+        const selectedValue = e.target.value;
+        if (!selectedValue) {
+            onChange(null);
+            return;
+        }
+        const selectedOption = options.find((o) => String(o[valueKey]) === String(selectedValue));
+        onChange(selectedOption || null);
+    };
+
+    return (
+        <div className="w-full">
+            <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block ml-1">{label}</label>
+            <select
+                disabled={disabled}
+                value={value ? value[valueKey] : ""}
+                onChange={handleChange}
+                className={`w-full rounded-xl px-4 py-3 border-2 text-sm transition-all outline-none ${disabled
+                    ? "bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed"
+                    : "bg-slate-50/50 border-slate-100 text-slate-700 hover:border-indigo-200 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                    }`}
+            >
+                <option value="">Choose {label}</option>
+                {options.map((o) => (
+                    <option key={o[valueKey]} value={o[valueKey]}>{o[labelKey]}</option>
+                ))}
+            </select>
+        </div>
+    );
+};
 
 export default AddProduct;

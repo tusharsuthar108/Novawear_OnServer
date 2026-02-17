@@ -187,6 +187,38 @@ app.post('/api/master-categories', upload.single('image'), async (req, res) => {
   }
 });
 
+// PUT route for master categories
+app.put('/api/master-categories/:id', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
+  const { name, slug, icon_url, is_active } = req.body;
+  
+  try {
+    const pool = require('./src/config/database');
+    let image_url = req.body.image_url;
+    if (req.file) {
+      image_url = `/uploads/categories/master/${req.file.filename}`;
+    }
+    
+    const result = await pool.query(
+      `UPDATE master_categories 
+       SET name = $1, slug = $2, image_url = COALESCE($3, image_url), 
+           icon_url = $4, is_active = $5 
+       WHERE master_category_id = $6 
+       RETURNING *`,
+      [name, slug, image_url, icon_url, is_active === 'true' || is_active === true, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error('PUT error:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // DELETE route for master categories
 app.delete('/api/master-categories/:id', async (req, res) => {
   const { id } = req.params;
