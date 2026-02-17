@@ -69,7 +69,7 @@ function AppContent() {
           <Route path="/signup" element={<Signup />} />
 
       </Routes>
-      <Footer />
+      {!isAdminRoute && !isAuthRoute && <Footer />}
     </>
   );
 }
