@@ -19,6 +19,7 @@ import AdminOrders from "./pages/admin/Orders";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Footer from "./components/Footer";
+import ProfileDashboard from "./components/Profile.auth";
 
 
 function AppContent() {
@@ -34,6 +35,7 @@ function AppContent() {
       <Routes>
           {/* Home */}
           <Route path="/" element={<Home />} />
+          <Route path = "/profileauth" element={<ProfileDashboard/>} />
 
           {/* Product Details */}
           <Route path="/product/:id" element={<ProductDetailsPage />} />

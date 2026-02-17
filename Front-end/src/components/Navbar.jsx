@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { categories } from "../data/database";
 import { useCart } from "../context/CartContext";
 import { Search, ShoppingBag, User, ChevronDown, LogOut, Settings, Package } from "lucide-react";
-import Logo from "../assets/logo.png"; // or .svg, .jpg, etc.
+import Logo from "../assets/logo.png";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -11,86 +11,12 @@ export default function Navbar() {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState(null);
-  const { getTotalItems } = useCart();
+  const { getTotalItems, handleLogout: clearCartOnLogout } = useCart();
 
   const newArrivals = categories.find((c) => c.slug === "new-arrivals");
   const bestSellers = categories.find((c) => c.slug === "best-sellers");
   const menCategory = categories.find((c) => c.slug === "men");
-
-  // MANUALLY ADDED COMPANY & HELP DROPDOWN DATA
-  const companyDropdown = {
-    id: "company-drop",
-    name: "Company",
-    subCategories: [
-      {
-        id: "c1",
-        name: "About Us",
-        subCategories: [
-          {
-            id: "c1-1",
-            name: "Our Story",
-            types: [
-              { id: "t1", name: "The Brand" },
-              { id: "t2", name: "Sustainability" },
-              { id: "t3", name: "Careers" },
-            ],
-          },
-        ],
-      },
-      {
-        id: "c2",
-        name: "Newsroom",
-        subCategories: [
-          {
-            id: "c2-1",
-            name: "Latest",
-            types: [
-              { id: "t4", name: "Press Releases" },
-              { id: "t5", name: "Lookbook" },
-            ],
-          },
-        ],
-      },
-    ],
-  };
-
-  const helpDropdown = {
-    id: "help-drop",
-    name: "Help & Support",
-    subCategories: [
-      {
-        id: "h1",
-        name: "Customer Service",
-        subCategories: [
-          {
-            id: "h1-1",
-            name: "Orders",
-            types: [
-              { id: "t6", name: "Track Order" },
-              { id: "t6b", name: "My Orders" },
-              { id: "t7", name: "Returns & Exchanges" },
-              { id: "t8", name: "Shipping Info" },
-            ],
-          },
-        ],
-      },
-      {
-        id: "h2",
-        name: "Contact",
-        subCategories: [
-          {
-            id: "h2-1",
-            name: "Reach Out",
-            types: [
-              { id: "t9", name: "Contact Us" },
-              { id: "t10", name: "FAQs" },
-              { id: "t11", name: "Size Guide" },
-            ],
-          },
-        ],
-      },
-    ],
-  };
+  const womenCategory = categories.find((c) => c.slug === "women");
 
   const staticPages = [
     { id: "sale", name: "Sale", href: "/sale", highlight: true },
@@ -121,8 +47,10 @@ export default function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('userId');
     localStorage.removeItem('rememberedEmail');
     localStorage.removeItem('rememberedPassword');
+    clearCartOnLogout();
     setUser(null);
     navigate('/');
   };
@@ -145,11 +73,7 @@ export default function Navbar() {
             {sub.subCategories.map((child) => (
               <div key={child.id}>
                 <p
-                  onClick={() =>
-                    navigate(
-                      `/products?mainCategory=${child.name.toLowerCase()}`
-                    )
-                  }
+                  onClick={() => navigate(`/shop/${cat.slug}/${child.slug}`)}
                   className="text-sm font-bold text-gray-900 mb-2 cursor-pointer hover:text-indigo-600 transition-colors"
                 >
                   {child.name}
@@ -158,17 +82,7 @@ export default function Navbar() {
                   {child.types?.map((type) => (
                     <li
                       key={type.id}
-                      onClick={() => {
-                        if (type.name === "Track Order") {
-                          navigate("/track-order");
-                        } else if (type.name === "My Orders") {
-                          navigate("/orders");
-                        } else {
-                          navigate(
-                            `/products?subCategory=${type.name.toLowerCase()}`
-                          );
-                        }
-                      }}
+                      onClick={() => navigate(`/shop/${cat.slug}/${child.slug}?typeId=${type.id}`)}
                       className="text-sm text-gray-500 hover:text-indigo-600 cursor-pointer transition-colors"
                     >
                       {type.name}
@@ -180,7 +94,6 @@ export default function Navbar() {
           </div>
         ))}
 
-        {/* PROMO BOX */}
         <div className="rounded-2xl bg-indigo-50 p-6 flex flex-col justify-between relative overflow-hidden">
           <div>
             <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest">
@@ -207,7 +120,6 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-[1800px] mx-auto px-6 flex justify-between items-center">
-        {/* LOGO */}
         <div
           onClick={() => navigate("/")}
           className="flex items-center cursor-pointer"
@@ -215,23 +127,14 @@ export default function Navbar() {
           <img
             src={Logo}
             alt="Nova Logo"
-            // Adjusted height: h-12 is larger than before
             className={`transition-all duration-300 ${
               scrolled ? "h-10" : "h-14"
             } w-auto object-contain`}
           />
         </div>
 
-        {/* NAVBAR */}
         <nav className="hidden lg:flex items-center gap-8">
-          {/* COMBINED DROPDOWNS (Database + Manual Company/Help) */}
-          {[
-            newArrivals,
-            bestSellers,
-            menCategory,
-            companyDropdown,
-            helpDropdown,
-          ].map(
+          {[newArrivals, bestSellers, womenCategory, menCategory].map(
             (cat) =>
               cat && (
                 <div
@@ -252,7 +155,6 @@ export default function Navbar() {
               )
           )}
 
-          {/* STATIC PAGES (SALE ONLY) */}
           {staticPages.map((page) => (
             <a
               key={page.id}
@@ -268,7 +170,6 @@ export default function Navbar() {
           ))}
         </nav>
 
-        {/* RIGHT ICONS */}
         <div className="flex items-center gap-5">
           <div className="relative hidden xl:block">
             <input
@@ -313,7 +214,7 @@ export default function Navbar() {
                     My Orders
                   </Link>
                   <Link
-                    to="/profile"
+                    to="/profileauth"
                     className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
                     onClick={() => setShowUserDropdown(false)}
                   >

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Package, AlertTriangle, TrendingUp, TrendingDown, Search, Filter, Plus, Edit, Trash2, Eye, X, Save } from 'lucide-react';
+import { Package, AlertTriangle, TrendingUp, TrendingDown, Search, Filter, Plus, Edit, Trash2, Eye, X, Save, Image } from 'lucide-react';
 import AddProduct from './AddProduct';
+import AddProductImages from './AddProductImages';
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +12,8 @@ const Inventory = () => {
   const [formData, setFormData] = useState({ name: '', sku: '', category: '', stock: '', minStock: '', price: '' });
 
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [showAddImages, setShowAddImages] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState(null);
 
   const inventoryData = [
     { id: 1, name: 'Cotton T-Shirt', sku: 'CT001', category: 'Apparel', stock: 150, minStock: 20, price: 25.99, status: 'in-stock' },
@@ -60,6 +63,10 @@ const Inventory = () => {
 
   if (showAddProduct) {
     return <AddProduct onBack={() => setShowAddProduct(false)} />;
+  }
+
+  if (showAddImages) {
+    return <AddProductImages productId={selectedProductId} onBack={() => setShowAddImages(false)} />;
   }
 
   return (
@@ -195,6 +202,16 @@ const Inventory = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => {
+                          setSelectedProductId(item.id);
+                          setShowAddImages(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-900 p-1 rounded" 
+                        title="Add Images"
+                      >
+                        <Image size={16} />
+                      </button>
                       <button onClick={() => openModal('view', item)} className="text-indigo-600 hover:text-indigo-900 p-1 rounded">
                         <Eye size={16} />
                       </button>

@@ -5,8 +5,8 @@ import { fetchMasterCategories } from '../api/masterCategory.api';
 import { fetchCategories } from '../api/Category.api';
 
 export default function CategorySlider() {
-  const sliderRef = useRef(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const sliderRefs = useRef({});
+  const [scrollProgress, setScrollProgress] = useState({});
   const [masterCategories, setMasterCategories] = useState([]);
   const [categories, setCategories] = useState([]);   
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,11 @@ export default function CategorySlider() {
         ]);
         
         if (masterResponse.success) {
-          setMasterCategories(masterResponse.data);
+          // Filter to show only Men and Women categories
+          const filtered = masterResponse.data.filter(
+            mc => mc.name.toLowerCase() === 'men' || mc.name.toLowerCase() === 'women'
+          );
+          setMasterCategories(filtered);
         }
         
         if (categoryResponse.success) {
@@ -48,17 +52,19 @@ export default function CategorySlider() {
   
   if (masterCategories.length === 0) return null;
 
-  const handleScroll = () => {
-    if (sliderRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
+  const handleScroll = (masterId) => {
+    if (sliderRefs.current[masterId]) {
+      const { scrollLeft, scrollWidth, clientWidth } = sliderRefs.current[masterId];
       const progress = (scrollLeft / (scrollWidth - clientWidth)) * 100;
-      setScrollProgress(progress);
+      setScrollProgress(prev => ({ ...prev, [masterId]: progress }));
     }
   };
 
-  const scroll = (direction) => {
+  const scroll = (direction, masterId) => {
     const scrollAmount = direction === 'left' ? -300 : 300;
-    sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    if (sliderRefs.current[masterId]) {
+      sliderRefs.current[masterId].scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -91,20 +97,20 @@ export default function CategorySlider() {
                   <div className="hidden md:block w-32 h-[2px] bg-gray-200 relative rounded-full overflow-hidden">
                     <div 
                       className="absolute h-full bg-red-600 transition-all duration-300 ease-out"
-                      style={{ width: `${scrollProgress}%` }}
+                      style={{ width: `${scrollProgress[masterCategory.master_category_id] || 0}%` }}
                     />
                   </div>
 
                   {/* Navigation Controls */}
                   <div className="flex gap-1">
                     <button 
-                      onClick={() => scroll('left')}
+                      onClick={() => scroll('left', masterCategory.master_category_id)}
                       className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-100 hover:bg-black hover:text-white transition-all shadow-sm"
                     >
                       <ChevronLeft size={18} />
                     </button>
                     <button 
-                      onClick={() => scroll('right')}
+                      onClick={() => scroll('right', masterCategory.master_category_id)}
                       className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-100 hover:bg-black hover:text-white transition-all shadow-sm"
                     >
                       <ChevronRight size={18} />
@@ -115,8 +121,8 @@ export default function CategorySlider() {
 
               {/* Categories Slider */}
               <div 
-                ref={sliderRef}
-                onScroll={handleScroll}
+                ref={(el) => (sliderRefs.current[masterCategory.master_category_id] = el)}
+                onScroll={() => handleScroll(masterCategory.master_category_id)}
                 className="category-slider flex gap-6 md:gap-8 overflow-x-auto no-scrollbar scroll-smooth pb-4"
               >
                 {masterCategoryCategories.map((category) => (

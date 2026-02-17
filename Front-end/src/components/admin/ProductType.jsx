@@ -6,6 +6,7 @@ import {
 import ProductTypeAdd from './ProductTypeAdd';
 import ProductTypeEdit from './ProductTypeEdit';
 import productTypeApi from '../../services/productTypeService';
+import { PLACEHOLDER_IMAGE } from '../../utils/constants';
 
 const ProductType = () => {
   // --- State Management ---
@@ -197,7 +198,7 @@ const ProductType = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <img 
-                          src={type.image_url ? `http://localhost:3000${type.image_url}` : "https://via.placeholder.com/80"} 
+                          src={type.image_url ? `http://localhost:3000${type.image_url}` : PLACEHOLDER_IMAGE} 
                           alt="" 
                           className="w-10 h-10 rounded-lg object-cover border border-slate-200" 
                         />

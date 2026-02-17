@@ -134,14 +134,102 @@ exports.updateCategory = async (req, res) => {
 /* ================= DELETE ================= */
 exports.deleteCategory = async (req, res) => {
   const { id } = req.params;
+  const { cascade } = req.query;
+  console.log('Delete request for category ID:', id, 'cascade:', cascade);
 
+  const client = await pool.connect();
   try {
-    await pool.query(
-      "DELETE FROM categories WHERE category_id=$1",
+    await client.query('BEGIN');
+
+    // Check if category exists
+    const categoryCheck = await client.query(
+      'SELECT * FROM categories WHERE category_id = $1',
       [id]
     );
-    res.json({ success: true });
+    
+    if (categoryCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ 
+        success: false, 
+        error: "Category not found" 
+      });
+    }
+
+    // Get all sub_category_ids for this category
+    const subCategoryIds = await client.query(
+      'SELECT sub_category_id FROM sub_categories WHERE category_id = $1',
+      [id]
+    );
+    const subCategoryCount = subCategoryIds.rows.length;
+    
+    // Check for product_types
+    let productTypeCount = 0;
+    if (subCategoryCount > 0) {
+      const productTypeCheck = await client.query(
+        `SELECT COUNT(*) as count FROM product_types 
+         WHERE sub_category_id = ANY($1)`,
+        [subCategoryIds.rows.map(r => r.sub_category_id)]
+      );
+      productTypeCount = parseInt(productTypeCheck.rows[0].count);
+    }
+    
+    // If cascade is enabled, delete in proper order
+    if (cascade === 'true') {
+      if (subCategoryCount > 0) {
+        const subCatIds = subCategoryIds.rows.map(r => r.sub_category_id);
+        
+        // Delete product_types for these subcategories
+        if (productTypeCount > 0) {
+          await client.query(
+            'DELETE FROM product_types WHERE sub_category_id = ANY($1)',
+            [subCatIds]
+          );
+          console.log(`Deleted ${productTypeCount} product types`);
+        }
+
+        // Delete subcategories
+        await client.query('DELETE FROM sub_categories WHERE category_id = $1', [id]);
+        console.log(`Deleted ${subCategoryCount} subcategories`);
+      }
+    } else {
+      // Prevent deletion if there are dependencies
+      if (productTypeCount > 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ 
+          success: false, 
+          error: `Cannot delete. Category has ${productTypeCount} product type(s). Remove them first.` 
+        });
+      }
+
+      if (subCategoryCount > 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ 
+          success: false, 
+          error: `Cannot delete. Category has ${subCategoryCount} subcategory(ies). Remove them first.` 
+        });
+      }
+    }
+
+    // Delete the category
+    const result = await client.query(
+      "DELETE FROM categories WHERE category_id=$1 RETURNING *",
+      [id]
+    );
+    
+    if (result.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, error: "Category not found" });
+    }
+    
+    await client.query('COMMIT');
+    console.log('Category deleted successfully:', id);
+    res.json({ success: true, message: "Category deleted successfully" });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    await client.query('ROLLBACK');
+    console.error('Error deleting category:', err.message);
+    console.error('Full error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  } finally {
+    client.release();
   }
 };

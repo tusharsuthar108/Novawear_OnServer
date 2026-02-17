@@ -6,7 +6,8 @@ import {
 import MasterCategoryAdd from './MasterCategoryAdd';
 import MasterCategoryView from './MasterCategoryView';
 import MasterCategoryEdit from './MasterCategoryEdit';
-import { deleteMasterCategory } from '../../api/masterCategory.api';
+import { deleteMasterCategory, updateMasterCategory } from '../../api/masterCategory.api';
+import { PLACEHOLDER_IMAGE } from '../../utils/constants';
 
 const MasterCategory = () => {
   const [categories, setCategories] = useState([]);
@@ -114,19 +115,11 @@ const MasterCategory = () => {
   const handleUpdateCategory = async (formData) => {
     try {
       setError(null);
-      const response = await fetch(`${API_BASE_URL}/${selectedCategory.master_category_id}`, {
-        method: 'PUT',
-        body: formData,
-      });
-      
-      if (response.ok) {
-        setSuccess('Category updated successfully!');
-        fetchCategories();
-        setIsEditModalOpen(false);
-        setTimeout(() => setSuccess(null), 3000);
-      } else {
-        throw new Error('Failed to update category');
-      }
+      await updateMasterCategory(selectedCategory.master_category_id, formData);
+      setSuccess('Category updated successfully!');
+      fetchCategories();
+      setIsEditModalOpen(false);
+      setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       setError(`Update failed: ${error.message}`);
     }
@@ -352,10 +345,10 @@ const MasterCategory = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <img 
-                          src={cat.image_url ? `http://localhost:3000${cat.image_url}` : "https://via.placeholder.com/80"} 
+                          src={cat.image_url ? `http://localhost:3000${cat.image_url}` : PLACEHOLDER_IMAGE} 
                           alt={cat.name} 
                           className="w-12 h-12 rounded-xl object-cover border border-slate-100 shadow-sm shrink-0"
-                          onError={(e) => e.target.src = "https://via.placeholder.com/80"}
+                          onError={(e) => e.target.src = PLACEHOLDER_IMAGE}
                         />
                         <div className="flex flex-col">
                           <span className="font-bold text-slate-900 text-sm leading-tight">{cat.name}</span>

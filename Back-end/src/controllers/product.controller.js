@@ -3,6 +3,45 @@ const pool = require('../config/database');
 exports.getAllProducts = async (req, res) => {
   try {
     const result = await pool.query(`
+<<<<<<< HEAD
+      SELECT 
+        p.product_id,
+        p.name,
+        p.description,
+        p.sku,
+        p.category_id,
+        p.brand_id,
+        p.is_active,
+        b.brand_name,
+        c.name as category_name,
+        c.slug as category_slug,
+        COALESCE(
+          p.image_url,
+          (SELECT pi.image_url FROM product_images pi 
+           JOIN product_variants pv ON pi.variant_id = pv.variant_id 
+           WHERE pv.product_id = p.product_id 
+           ORDER BY pi.is_primary DESC, pi.image_id ASC 
+           LIMIT 1)
+        ) as image_url,
+        json_agg(
+          json_build_object(
+            'variant_id', pv.variant_id,
+            'price', pv.price,
+            'discount_price', pv.discount_price,
+            'size_name', s.size_name,
+            'color_name', col.color_name
+          )
+        ) FILTER (WHERE pv.variant_id IS NOT NULL) as variants
+      FROM products p 
+      LEFT JOIN brands b ON p.brand_id = b.brand_id
+      LEFT JOIN categories c ON p.category_id = c.category_id
+      LEFT JOIN product_variants pv ON p.product_id = pv.product_id
+      LEFT JOIN sizes s ON pv.size_id = s.size_id
+      LEFT JOIN colors col ON pv.color_id = col.color_id
+      WHERE p.is_active = true
+      GROUP BY p.product_id, b.brand_name, c.name, c.slug
+      ORDER BY p.created_at DESC
+=======
       SELECT DISTINCT ON (p.product_id)
         p.*, 
         b.brand_name,
@@ -13,10 +52,67 @@ exports.getAllProducts = async (req, res) => {
       LEFT JOIN product_variants pv ON p.product_id = pv.product_id
       WHERE p.is_active = true
       ORDER BY p.product_id, pv.price ASC
+>>>>>>> 1e16d4f0bce9d611a4c71011725593423244d8e5
     `);
     res.json({ success: true, data: result.rows });
   } catch (error) {
     console.error('Get Products Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get product details
+    const productResult = await pool.query(`
+      SELECT p.*, b.brand_name 
+      FROM products p 
+      LEFT JOIN brands b ON p.brand_id = b.brand_id 
+      WHERE p.product_id = $1
+    `, [id]);
+    
+    if (productResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    
+    const product = productResult.rows[0];
+    
+    // Get all images for this product's variants
+    const imagesResult = await pool.query(`
+      SELECT DISTINCT pi.image_url
+      FROM product_images pi
+      JOIN product_variants pv ON pi.variant_id = pv.variant_id
+      WHERE pv.product_id = $1
+      ORDER BY pi.image_url
+    `, [id]);
+    
+    product.images = imagesResult.rows.map(row => row.image_url);
+    
+    // Get variants with details
+    const variantsResult = await pool.query(`
+      SELECT 
+        pv.*,
+        s.size_name,
+        c.color_name,
+        f.fabric_name,
+        p.pattern_name,
+        i.stock_quantity
+      FROM product_variants pv
+      LEFT JOIN sizes s ON pv.size_id = s.size_id
+      LEFT JOIN colors c ON pv.color_id = c.color_id
+      LEFT JOIN fabrics f ON pv.fabric_id = f.fabric_id
+      LEFT JOIN patterns p ON pv.pattern_id = p.pattern_id
+      LEFT JOIN inventory i ON pv.variant_id = i.variant_id
+      WHERE pv.product_id = $1
+    `, [id]);
+    
+    product.variants = variantsResult.rows;
+    
+    res.json({ success: true, data: product });
+  } catch (error) {
+    console.error('Get Product By ID Error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -66,8 +162,15 @@ exports.createProduct = async (req, res) => {
     console.log('--- Creating Product ---');
     console.log('Title:', title);
 
-    // Generate slug from title
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    // Generate slug from title with timestamp to ensure uniqueness
+    let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    
+    // Check if slug exists and make it unique
+    const existingSlug = await client.query('SELECT slug FROM products WHERE slug = $1', [slug]);
+    if (existingSlug.rows.length > 0) {
+      slug = `${slug}-${Date.now()}`;
+    }
+    
     console.log('Generated slug:', slug);
 
     // 1. Insert into products table with category references
@@ -177,23 +280,24 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, sku, description, price, discount_price, is_active } = req.body;
+    const { name, sku, description, is_active, price, discount_price } = req.body;
     
-    let image_url = req.body.image_url;
+    // Handle image upload if provided
+    let imageUrl = req.body.image_url; // Keep existing image if no new one
     if (req.file) {
-      image_url = `/uploads/products/${req.file.filename}`;
+      imageUrl = `/uploads/products/${req.file.filename}`;
     }
     
     const result = await pool.query(
-      'UPDATE products SET name = COALESCE($1, name), sku = COALESCE($2, sku), description = COALESCE($3, description), price = COALESCE($4, price), discount_price = COALESCE($5, discount_price), image_url = COALESCE($6, image_url), is_active = COALESCE($7, is_active) WHERE product_id = $8 RETURNING *',
-      [name, sku, description, price || null, discount_price || null, image_url, is_active === 'true' || is_active === true, id]
+      'UPDATE products SET name = COALESCE($1, name), sku = COALESCE($2, sku), description = COALESCE($3, description), is_active = COALESCE($4, is_active), image_url = COALESCE($5, image_url) WHERE product_id = $6 RETURNING *',
+      [name, sku, description, is_active === 'true' || is_active === true, imageUrl, id]
     );
     
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Product not found' });
     }
     
-    res.json({ success: true, data: result.rows[0] });
+    res.json({ success: true, data: result.rows[0], message: 'Product updated successfully' });
   } catch (error) {
     console.error('Update product error:', error);
     res.status(500).json({ success: false, error: error.message });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Calendar, Tag, Image, ToggleLeft, ToggleRight, Folder } from 'lucide-react';
+import { PLACEHOLDER_IMAGE } from '../../utils/constants';
 
 const SubCategoryView = ({ isOpen, onClose, subCategory }) => {
   if (!isOpen || !subCategory) return null;
@@ -20,10 +21,10 @@ const SubCategoryView = ({ isOpen, onClose, subCategory }) => {
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-6">
             <img 
-              src={subCategory.image_url ? `http://localhost:3000${subCategory.image_url}` : "https://via.placeholder.com/120"} 
+              src={subCategory.image_url ? `http://localhost:3000${subCategory.image_url}` : PLACEHOLDER_IMAGE} 
               alt={subCategory.name}
               className="w-24 h-24 rounded-xl object-cover border border-slate-200"
-              onError={(e) => e.target.src = "https://via.placeholder.com/120"}
+              onError={(e) => e.target.src = PLACEHOLDER_IMAGE}
             />
             <div>
               <h3 className="text-2xl font-bold text-slate-900">{subCategory.name}</h3>

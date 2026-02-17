@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Edit, Trash2, ChevronDown, ChevronRight, Package, Tag, Palette, Shirt } from 'lucide-react';
+import { Search, Eye, Edit, Trash2, ChevronDown, ChevronRight, Package, Tag, Palette, Shirt, Image } from 'lucide-react';
 import { productAPI } from '../../api/product.api';
+import AddProductImages from './AddProductImages';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -12,6 +13,7 @@ const ProductList = () => {
   const [editFormData, setEditFormData] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [addingImagesFor, setAddingImagesFor] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -110,6 +112,15 @@ const ProductList = () => {
     product.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.brand_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (addingImagesFor) {
+    return (
+      <AddProductImages 
+        productId={addingImagesFor} 
+        onBack={() => setAddingImagesFor(null)} 
+      />
+    );
+  }
 
   if (viewingProduct) {
     return (
@@ -366,6 +377,13 @@ const ProductList = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={() => setAddingImagesFor(product.product_id)}
+                            className="p-2 text-slate-400 hover:text-green-500 transition-colors rounded-lg hover:bg-green-50"
+                            title="Add Images"
+                          >
+                            <Image size={16} />
+                          </button>
                           <button 
                             onClick={() => handleView(product)}
                             className="p-2 text-slate-400 hover:text-blue-500 transition-colors rounded-lg hover:bg-blue-50"

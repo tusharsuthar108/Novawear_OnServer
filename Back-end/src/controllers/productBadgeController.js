@@ -95,14 +95,6 @@ class ProductBadgeController {
     try {
       const { badgeType } = req.params;
       
-      // First, let's check what columns exist
-      const columnsCheck = await pool.query(`
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'products'
-      `);
-      console.log('Products table columns:', columnsCheck.rows.map(r => r.column_name));
-      
       const result = await pool.query(`
         SELECT DISTINCT
           p.product_id, 
@@ -131,21 +123,9 @@ class ProductBadgeController {
         LIMIT 20
       `, [badgeType]);
       
-      console.log(`Found ${result.rows.length} products for badge: ${badgeType}`);
       res.json({ success: true, data: result.rows });
     } catch (error) {
-      console.error('Error fetching products by badge type:', error);
-      console.error('Error details:', {
-        message: error.message,
-        code: error.code,
-        detail: error.detail,
-        position: error.position
-      });
-      res.status(500).json({ 
-        success: false, 
-        message: error.message,
-        detail: error.detail || 'No additional details'
-      });
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 }

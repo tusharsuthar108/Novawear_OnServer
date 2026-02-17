@@ -41,11 +41,27 @@ const CategoryPage = () => {
       const colorsData = await colorsRes.json();
       const sizesData = await sizesRes.json();
       
-      setProducts(productsData.success ? productsData.data : productsData);
-      setCategories(categoriesData.success ? categoriesData.data : categoriesData);
+      const allProducts = productsData.success ? productsData.data : productsData;
+      const allCategories = categoriesData.success ? categoriesData.data : categoriesData;
+      
+      setCategories(allCategories);
       setBrands(brandsData.success ? brandsData.data : brandsData);
       setColors(colorsData.success ? colorsData.data : colorsData);
       setSizes(sizesData.success ? sizesData.data : sizesData);
+      
+      // Filter products by category slug if provided
+      if (categorySlug) {
+        const category = allCategories.find(cat => cat.slug === categorySlug);
+        if (category) {
+          const filtered = allProducts.filter(p => p.category_id === category.category_id);
+          setProducts(filtered);
+          setSelectedCategories([category.category_id]);
+        } else {
+          setProducts(allProducts);
+        }
+      } else {
+        setProducts(allProducts);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -421,20 +437,46 @@ const CategoryPage = () => {
               ) : (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
-                    {currentItems.map((product) => (
-                      <ProductCard
-                        key={product.product_id}
-                        id={product.product_id}
-                        image={product.image_url || 'https://via.placeholder.com/300'}
-                        brand={product.brand_name}
-                        title={product.name}
-                        price={product.price}
-                        mrp={product.mrp}
-                        discount={product.discount_price ? `${Math.round((1 - product.discount_price / product.price) * 100)}% OFF` : null}
-                        rating="4.2"
-                        reviews="150"
-                      />
-                    ))}
+                    {currentItems.map((product) => {
+                      const infrastructureImages = [
+                        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab",
+                        "https://images.unsplash.com/photo-1541888946425-d81bb19240f5",
+                        "https://images.unsplash.com/photo-1449824913935-59a10b8d2000",
+                        "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b",
+                        "https://images.unsplash.com/photo-1444723121867-7a241cacace9",
+                        "https://images.unsplash.com/photo-1513467535987-fd81bc7d62f8",
+                        "https://images.unsplash.com/photo-1518005020951-eccb494ad742",
+                        "https://images.unsplash.com/photo-1431274172761-fca41d930114",
+                      ];
+                      const defaultImage = infrastructureImages[product.product_id % infrastructureImages.length];
+                      
+                      // Get price from variants
+                      let displayPrice = 0;
+                      let displayMrp = 0;
+                      if (product.variants && product.variants.length > 0) {
+                        const variant = product.variants[0];
+                        displayPrice = parseFloat(variant.discount_price || variant.price || 0);
+                        displayMrp = parseFloat(variant.price || 0);
+                      }
+                      
+                      const discountPercent = displayMrp > displayPrice ? `${Math.round((1 - displayPrice / displayMrp) * 100)}% OFF` : null;
+                      
+                      return (
+                        <ProductCard
+                          key={product.product_id}
+                          id={product.product_id}
+                          image={product.image_url || defaultImage}
+                          brand={product.brand_name}
+                          title={product.name}
+                          price={displayPrice}
+                          mrp={displayMrp}
+                          discount={discountPercent}
+                          rating="4.2"
+                          reviews="150"
+                          product={product}
+                        />
+                      );
+                    })}
                       </div>
                   {/* Pagination */}
                   {totalPages > 1 && (

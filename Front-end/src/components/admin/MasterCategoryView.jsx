@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Calendar, Tag, Image, ToggleLeft, ToggleRight } from 'lucide-react';
+import { PLACEHOLDER_IMAGE } from '../../utils/constants';
 
 const MasterCategoryView = ({ isOpen, onClose, category }) => {
   if (!isOpen || !category) return null;
@@ -20,10 +21,10 @@ const MasterCategoryView = ({ isOpen, onClose, category }) => {
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-6">
             <img 
-              src={category.image_url ? `http://localhost:3000${category.image_url}` : "https://via.placeholder.com/120"} 
+              src={category.image_url ? `http://localhost:3000${category.image_url}` : PLACEHOLDER_IMAGE} 
               alt={category.name}
               className="w-24 h-24 rounded-xl object-cover border border-slate-200"
-              onError={(e) => e.target.src = "https://via.placeholder.com/120"}
+              onError={(e) => e.target.src = PLACEHOLDER_IMAGE}
             />
             <div>
               <h3 className="text-2xl font-bold text-slate-900">{category.name}</h3>

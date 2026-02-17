@@ -75,12 +75,17 @@ export const updateCategory = async (id, categoryData) => {
 /**
  * Deletes a category by ID.
  * @param {number|string} id 
+ * @param {boolean} cascade - If true, also deletes subcategories and products
  */
-export const deleteCategory = async (id) => {
+export const deleteCategory = async (id, cascade = false) => {
   try {
-    const response = await axios.delete(`${API_URL}/${id}`);
+    console.log('Deleting category with ID:', id, 'cascade:', cascade);
+    const url = cascade ? `${API_URL}/${id}?cascade=true` : `${API_URL}/${id}`;
+    console.log('Delete URL:', url);
+    const response = await axios.delete(url);
     return response.data;
   } catch (error) {
-    throw error.response?.data || { error: "Failed to delete category" };
+    console.error('Delete API error:', error.response || error);
+    throw error.response?.data || { error: error.message || "Failed to delete category" };
   }
 };
