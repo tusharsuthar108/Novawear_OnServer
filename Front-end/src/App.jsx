@@ -9,7 +9,7 @@ import PaymentPage from "./pages/PaymentPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import ProductGalleryPage from "./pages/ProductGalleryPage";
 import TrackOrderPage from "./pages/TrackOrderPage";
-import OrdersPage from "./pages/OrdersPage";;
+import OrdersPage from "./pages/OrdersPage";
 import AdminDashboard from "./pages/admin/dashboard";
 import CategoryPage from "./pages/CategoryPage";
 import Tranding from "./pages/Tranding";
